@@ -151,7 +151,7 @@ public class RTPGUI implements Listener {
                 cooldowns.put(player, System.currentTimeMillis());
                 player.closeInventory();
                 
-                plugin.getTeleportManager().startTeleport(player, safeLocation,
+                plugin.getTeleportManager().startTeleport(player, safeLocation, "rtp",
                     () -> {
                         plugin.getMessageManager().sendMessage(player, "teleport-success", "rtp");
                     },
@@ -177,8 +177,11 @@ public class RTPGUI implements Listener {
             int y = minY + random.nextInt(maxY - minY + 1);
             
             Location loc = new Location(world, x + 0.5, y, z + 0.5);
-            if (isSafeLocation(loc)) {
-                return loc;
+            
+            if (world.isChunkLoaded(loc.getBlockX() >> 4, loc.getBlockZ() >> 4)) {
+                if (isSafeLocation(loc)) {
+                    return loc;
+                }
             }
         }
         return null;
@@ -210,10 +213,6 @@ public class RTPGUI implements Listener {
             return false;
         }
         
-        if (world.getNearbyEntities(location, 2, 2, 2).stream().anyMatch(e -> !e.isDead())) {
-            return false;
-        }
-        
         return true;
     }
-    }
+            }

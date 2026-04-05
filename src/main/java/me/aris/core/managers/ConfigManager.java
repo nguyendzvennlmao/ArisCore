@@ -10,6 +10,7 @@ public class ConfigManager {
     private FileConfiguration config;
     private FileConfiguration afkConfig;
     private FileConfiguration homeConfig;
+    private FileConfiguration homeGuiConfig;
     private FileConfiguration warpConfig;
     private FileConfiguration spawnConfig;
     private FileConfiguration tpaConfig;
@@ -24,16 +25,17 @@ public class ConfigManager {
         plugin.reloadConfig();
         config = plugin.getConfig();
         
-        afkConfig = loadModuleConfig("Afk");
-        homeConfig = loadModuleConfig("Home");
-        warpConfig = loadModuleConfig("Warp");
-        spawnConfig = loadModuleConfig("Spawn");
-        tpaConfig = loadModuleConfig("Tpa");
-        rtpConfig = loadModuleConfig("Rtp");
+        afkConfig = loadModuleConfig("Afk", "config.yml");
+        homeConfig = loadModuleConfig("Home", "config.yml");
+        homeGuiConfig = loadModuleConfig("Home/gui", "home.yml");
+        warpConfig = loadModuleConfig("Warp", "config.yml");
+        spawnConfig = loadModuleConfig("Spawn", "config.yml");
+        tpaConfig = loadModuleConfig("Tpa", "config.yml");
+        rtpConfig = loadModuleConfig("Rtp", "config.yml");
     }
     
-    private FileConfiguration loadModuleConfig(String module) {
-        File file = new File(plugin.getDataFolder(), module + "/config.yml");
+    private FileConfiguration loadModuleConfig(String module, String fileName) {
+        File file = new File(plugin.getDataFolder(), module + "/" + fileName);
         if (file.exists()) {
             return YamlConfiguration.loadConfiguration(file);
         }
@@ -66,8 +68,9 @@ public class ConfigManager {
     
     public FileConfiguration getAfkConfig() { return afkConfig; }
     public FileConfiguration getHomeConfig() { return homeConfig; }
+    public FileConfiguration getHomeGuiConfig() { return homeGuiConfig; }
     public FileConfiguration getWarpConfig() { return warpConfig; }
     public FileConfiguration getSpawnConfig() { return spawnConfig; }
     public FileConfiguration getTpaConfig() { return tpaConfig; }
     public FileConfiguration getRtpConfig() { return rtpConfig; }
-    }
+}

@@ -32,4 +32,4 @@ public class TPAutoCommand implements CommandExecutor {
         
         return true;
     }
-    }
+}

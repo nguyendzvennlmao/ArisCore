@@ -5,6 +5,8 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import java.util.HashMap;
+import java.util.Map;
 
 public class SetHomeCommand implements CommandExecutor {
     private ArisCore plugin;
@@ -35,7 +37,9 @@ public class SetHomeCommand implements CommandExecutor {
         }
         
         if (plugin.getHomeManager().hasHome(player, homeName)) {
-            plugin.getMessageManager().sendMessage(player, "home-exists", "home", "home", homeName);
+            Map<String, String> placeholders = new HashMap<>();
+            placeholders.put("home", homeName);
+            plugin.getMessageManager().sendMessage(player, "home-exists", "home", placeholders);
             return true;
         }
         
@@ -43,17 +47,19 @@ public class SetHomeCommand implements CommandExecutor {
         int maxHomes = plugin.getHomeManager().getMaxHomes(player);
         
         if (currentHomes >= maxHomes) {
-            plugin.getMessageManager().sendMessage(player, "home-limit-reached", "home", 
-                new java.util.HashMap<String, String>() {{
-                    put("current", String.valueOf(currentHomes));
-                    put("max", String.valueOf(maxHomes));
-                }});
+            Map<String, String> placeholders = new HashMap<>();
+            placeholders.put("current", String.valueOf(currentHomes));
+            placeholders.put("max", String.valueOf(maxHomes));
+            plugin.getMessageManager().sendMessage(player, "home-limit-reached", "home", placeholders);
             return true;
         }
         
         plugin.getHomeManager().addHome(player, homeName, player.getLocation());
-        plugin.getMessageManager().sendMessage(player, "home-set", "home", "home", homeName);
+        
+        Map<String, String> placeholders = new HashMap<>();
+        placeholders.put("home", homeName);
+        plugin.getMessageManager().sendMessage(player, "home-set", "home", placeholders);
         
         return true;
     }
-                                                   }
+                             }

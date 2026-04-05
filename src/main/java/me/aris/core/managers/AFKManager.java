@@ -5,7 +5,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
@@ -18,7 +17,7 @@ public class AFKManager {
     private Location afkLocation;
     private File afkLocationFile;
     private YamlConfiguration afkLocationConfig;
-    private int taskId;
+    private io.papermc.paper.threadedregions.scheduler.ScheduledTask task;
     
     public AFKManager(ArisCore plugin) {
         this.plugin = plugin;
@@ -31,7 +30,11 @@ public class AFKManager {
     
     private void loadAFKLocation() {
         if (!afkLocationFile.exists()) {
-            plugin.saveResource("afk-location.yml", false);
+            try {
+                afkLocationFile.createNewFile();
+            } catch (Exception e) {
+                plugin.getLogger().warning("Failed to create afk-location.yml: " + e.getMessage());
+            }
         }
         afkLocationConfig = YamlConfiguration.loadConfiguration(afkLocationFile);
         if (afkLocationConfig.contains("world")) {
@@ -121,19 +124,16 @@ public class AFKManager {
         int autoAFKTime = plugin.getConfigManager().getAfkConfig().getInt("auto-afk-time", 300);
         int checkInterval = plugin.getConfigManager().getAfkConfig().getInt("check-interval", 10);
         
-        taskId = new BukkitRunnable() {
-            @Override
-            public void run() {
-                for (Player player : Bukkit.getOnlinePlayers()) {
-                    if (!isAFK(player)) {
-                        long lastActive = lastActiveTime.getOrDefault(player.getUniqueId(), System.currentTimeMillis());
-                        if (System.currentTimeMillis() - lastActive > autoAFKTime * 1000L) {
-                            setAFK(player, true);
-                        }
+        task = Bukkit.getGlobalRegionScheduler().runAtFixedRate(plugin, scheduledTask -> {
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                if (!isAFK(player)) {
+                    long lastActive = lastActiveTime.getOrDefault(player.getUniqueId(), System.currentTimeMillis());
+                    if (System.currentTimeMillis() - lastActive > autoAFKTime * 1000L) {
+                        setAFK(player, true);
                     }
                 }
             }
-        }.runTaskTimer(plugin, 0L, checkInterval * 20L).getTaskId();
+        }, 0L, checkInterval * 20L);
     }
     
     public void updateActivity(Player player) {
@@ -144,8 +144,8 @@ public class AFKManager {
     }
     
     public void shutdown() {
-        if (taskId != 0) {
-            Bukkit.getScheduler().cancelTask(taskId);
+        if (task != null) {
+            task.cancel();
         }
     }
-                                        }
+    }

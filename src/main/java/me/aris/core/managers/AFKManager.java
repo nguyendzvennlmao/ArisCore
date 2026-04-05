@@ -133,7 +133,7 @@ public class AFKManager {
                     }
                 }
             }
-        }, 0L, checkInterval * 20L);
+        }, 1L, checkInterval * 20L);
     }
     
     public void updateActivity(Player player) {
@@ -148,4 +148,4 @@ public class AFKManager {
             task.cancel();
         }
     }
-    }
+                }

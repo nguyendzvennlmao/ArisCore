@@ -3,9 +3,11 @@ package me.aris.core.managers;
 import me.aris.core.ArisCore;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -15,70 +17,87 @@ public class AFKManager {
     private Map<UUID, Boolean> afkPlayers;
     private Map<UUID, Long> lastActiveTime;
     private Location afkLocation;
-    private File afkLocationFile;
-    private YamlConfiguration afkLocationConfig;
+    private File afkFile;
+    private YamlConfiguration afkConfig;
     private io.papermc.paper.threadedregions.scheduler.ScheduledTask task;
     
     public AFKManager(ArisCore plugin) {
         this.plugin = plugin;
         this.afkPlayers = new HashMap<>();
         this.lastActiveTime = new HashMap<>();
-        this.afkLocationFile = new File(plugin.getDataFolder(), "afk-location.yml");
+        File locationFolder = new File(plugin.getDataFolder(), "Location");
+        if (!locationFolder.exists()) {
+            locationFolder.mkdirs();
+        }
+        this.afkFile = new File(locationFolder, "afk.yml");
         loadAFKLocation();
         startAutoAFKTask();
     }
     
     private void loadAFKLocation() {
-        if (!afkLocationFile.exists()) {
+        if (!afkFile.exists()) {
             try {
-                afkLocationFile.createNewFile();
-            } catch (Exception e) {
-                plugin.getLogger().warning("Failed to create afk-location.yml: " + e.getMessage());
+                afkFile.createNewFile();
+                afkConfig = YamlConfiguration.loadConfiguration(afkFile);
+            } catch (IOException e) {
+                plugin.getLogger().warning("Failed to create afk.yml: " + e.getMessage());
+                afkConfig = new YamlConfiguration();
             }
+        } else {
+            afkConfig = YamlConfiguration.loadConfiguration(afkFile);
         }
-        afkLocationConfig = YamlConfiguration.loadConfiguration(afkLocationFile);
-        if (afkLocationConfig.contains("world")) {
-            afkLocation = new Location(
-                Bukkit.getWorld(afkLocationConfig.getString("world")),
-                afkLocationConfig.getDouble("x"),
-                afkLocationConfig.getDouble("y"),
-                afkLocationConfig.getDouble("z"),
-                (float) afkLocationConfig.getDouble("yaw"),
-                (float) afkLocationConfig.getDouble("pitch")
-            );
+        
+        if (afkConfig.contains("world")) {
+            World world = Bukkit.getWorld(afkConfig.getString("world"));
+            if (world != null) {
+                afkLocation = new Location(
+                    world,
+                    afkConfig.getDouble("x"),
+                    afkConfig.getDouble("y"),
+                    afkConfig.getDouble("z"),
+                    (float) afkConfig.getDouble("yaw"),
+                    (float) afkConfig.getDouble("pitch")
+                );
+            }
         }
     }
     
     public void saveAFKLocation() {
-        if (afkLocation != null) {
-            afkLocationConfig.set("world", afkLocation.getWorld().getName());
-            afkLocationConfig.set("x", afkLocation.getX());
-            afkLocationConfig.set("y", afkLocation.getY());
-            afkLocationConfig.set("z", afkLocation.getZ());
-            afkLocationConfig.set("yaw", afkLocation.getYaw());
-            afkLocationConfig.set("pitch", afkLocation.getPitch());
+        if (afkLocation != null && afkLocation.getWorld() != null) {
+            afkConfig.set("world", afkLocation.getWorld().getName());
+            afkConfig.set("x", afkLocation.getX());
+            afkConfig.set("y", afkLocation.getY());
+            afkConfig.set("z", afkLocation.getZ());
+            afkConfig.set("yaw", afkLocation.getYaw());
+            afkConfig.set("pitch", afkLocation.getPitch());
             try {
-                afkLocationConfig.save(afkLocationFile);
-            } catch (Exception e) {
-                plugin.getLogger().warning("Failed to save AFK location: " + e.getMessage());
+                afkConfig.save(afkFile);
+            } catch (IOException e) {
+                plugin.getLogger().warning("Failed to save afk.yml: " + e.getMessage());
             }
         }
     }
     
     public void setAFKLocation(Location location) {
-        this.afkLocation = location;
+        this.afkLocation = location.clone();
         saveAFKLocation();
     }
     
     public void deleteAFKLocation() {
         this.afkLocation = null;
-        if (afkLocationFile.exists()) {
-            afkLocationFile.delete();
+        if (afkFile.exists()) {
+            afkFile.delete();
+        }
+        try {
+            afkFile.createNewFile();
+            afkConfig = YamlConfiguration.loadConfiguration(afkFile);
+        } catch (IOException e) {
+            plugin.getLogger().warning("Failed to reset afk.yml: " + e.getMessage());
         }
     }
     
     public Location getAFKLocation() {
-        return afkLocation;
+        return afkLocation != null ? afkLocation.clone() : null;
     }
     
     public boolean isAFK(Player player) {
@@ -133,7 +152,7 @@ public class AFKManager {
                     }
                 }
             }
-        }, 1L, checkInterval * 20L);
+        }, 20L, checkInterval * 20L);
     }
     
     public void updateActivity(Player player) {
@@ -148,4 +167,4 @@ public class AFKManager {
             task.cancel();
         }
     }
-                }
+    }

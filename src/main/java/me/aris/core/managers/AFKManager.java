@@ -128,8 +128,7 @@ public class AFKManager {
     }
     
     private void startTeleportToAFKLocation(Player player) {
-        int countdown = plugin.getConfigManager().getTeleportCountdown();
-        plugin.getTeleportManager().startTeleport(player, afkLocation, 
+        plugin.getTeleportManager().startTeleport(player, afkLocation, "afk",
             () -> {
                 plugin.getMessageManager().sendMessage(player, "teleport-success", "afk");
             },
@@ -167,4 +166,4 @@ public class AFKManager {
             task.cancel();
         }
     }
-    }
+        }

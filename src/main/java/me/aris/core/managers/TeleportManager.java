@@ -3,14 +3,13 @@ package me.aris.core.managers;
 import me.aris.core.ArisCore;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
 public class TeleportManager {
     private ArisCore plugin;
-    private Map<UUID, TeleportTask> activeTeleports;
+    private Map<UUID, io.papermc.paper.threadedregions.scheduler.ScheduledTask> activeTeleports;
     
     public TeleportManager(ArisCore plugin) {
         this.plugin = plugin;
@@ -18,17 +17,14 @@ public class TeleportManager {
     }
     
     public void startTeleport(Player player, Location targetLocation, Runnable onComplete, Runnable onCancel) {
-        if (activeTeleports.containsKey(player.getUniqueId())) {
-            cancelTeleport(player);
-        }
+        cancelTeleport(player);
         
         TeleportTask task = new TeleportTask(player, targetLocation, onComplete, onCancel);
-        activeTeleports.put(player.getUniqueId(), task);
         task.start();
     }
     
     public void cancelTeleport(Player player) {
-        TeleportTask task = activeTeleports.remove(player.getUniqueId());
+        io.papermc.paper.threadedregions.scheduler.ScheduledTask task = activeTeleports.remove(player.getUniqueId());
         if (task != null) {
             task.cancel();
         }
@@ -45,7 +41,7 @@ public class TeleportManager {
         private Runnable onComplete;
         private Runnable onCancel;
         private int countdown;
-        private int taskId;
+        private io.papermc.paper.threadedregions.scheduler.ScheduledTask task;
         private boolean cancelled;
         
         public TeleportTask(Player player, Location targetLocation, Runnable onComplete, Runnable onCancel) {
@@ -59,31 +55,34 @@ public class TeleportManager {
         }
         
         public void start() {
-            taskId = new BukkitRunnable() {
-                @Override
-                public void run() {
-                    if (cancelled || !player.isOnline()) {
-                        cancel();
-                        return;
-                    }
-                    
-                    if (checkCancellationConditions()) {
-                        cancelTeleport();
-                        return;
-                    }
-                    
-                    if (countdown <= 0) {
-                        executeTeleport();
-                        cancel();
-                        return;
-                    }
-                    
-                    Map<String, String> placeholders = new HashMap<>();
-                    placeholders.put("time", String.valueOf(countdown));
-                    plugin.getMessageManager().sendTeleportCountdown(player, getModuleName(), countdown, placeholders);
-                    countdown--;
+            task = player.getScheduler().runAtFixedRate(plugin, scheduledTask -> {
+                if (cancelled || !player.isOnline()) {
+                    scheduledTask.cancel();
+                    activeTeleports.remove(player.getUniqueId());
+                    return;
                 }
-            }.runTaskTimer(plugin, 0L, 20L).getTaskId();
+                
+                if (checkCancellationConditions()) {
+                    cancelTeleport();
+                    scheduledTask.cancel();
+                    activeTeleports.remove(player.getUniqueId());
+                    return;
+                }
+                
+                if (countdown <= 0) {
+                    executeTeleport();
+                    scheduledTask.cancel();
+                    activeTeleports.remove(player.getUniqueId());
+                    return;
+                }
+                
+                Map<String, String> placeholders = new HashMap<>();
+                placeholders.put("time", String.valueOf(countdown));
+                plugin.getMessageManager().sendTeleportCountdown(player, "home", countdown, placeholders);
+                countdown--;
+            }, null, 1L, 20L);
+            
+            activeTeleports.put(player.getUniqueId(), task);
         }
         
         private boolean checkCancellationConditions() {
@@ -93,20 +92,20 @@ public class TeleportManager {
             if (allowedRange > 0) {
                 double distance = startLocation.distance(currentLocation);
                 if (distance > allowedRange) {
-                    plugin.getMessageManager().sendTeleportCancelled(player, getModuleName(), "movement");
+                    plugin.getMessageManager().sendTeleportCancelled(player, "home", "movement");
                     return true;
                 }
             }
-            
             return false;
         }
         
         private void executeTeleport() {
             if (cancelled || !player.isOnline()) return;
             
-            player.teleportAsync(targetLocation).thenAccept(success -> {
+            Location finalLocation = targetLocation.clone();
+            player.teleportAsync(finalLocation).thenAccept(success -> {
                 if (success) {
-                    plugin.getMessageManager().sendTeleportSuccess(player, getModuleName());
+                    plugin.getMessageManager().sendTeleportSuccess(player, "home");
                     if (onComplete != null) {
                         onComplete.run();
                     }
@@ -119,18 +118,6 @@ public class TeleportManager {
             if (onCancel != null) {
                 onCancel.run();
             }
-            cancel();
-        }
-        
-        public void cancel() {
-            cancelled = true;
-            if (taskId != 0) {
-                org.bukkit.Bukkit.getScheduler().cancelTask(taskId);
-            }
-        }
-        
-        private String getModuleName() {
-            return "home";
         }
     }
-                              }
+                               }

@@ -3,9 +3,11 @@ package me.aris.core.managers;
 import me.aris.core.ArisCore;
 import me.aris.core.models.Warp;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -19,7 +21,11 @@ public class WarpManager {
     public WarpManager(ArisCore plugin) {
         this.plugin = plugin;
         this.warps = new ConcurrentHashMap<>();
-        this.warpsFile = new File(plugin.getDataFolder(), "warps.yml");
+        File locationFolder = new File(plugin.getDataFolder(), "Location");
+        if (!locationFolder.exists()) {
+            locationFolder.mkdirs();
+        }
+        this.warpsFile = new File(locationFolder, "warp.yml");
         loadWarps();
     }
     
@@ -27,16 +33,20 @@ public class WarpManager {
         if (!warpsFile.exists()) {
             try {
                 warpsFile.createNewFile();
-            } catch (Exception e) {
-                plugin.getLogger().warning("Failed to create warps.yml: " + e.getMessage());
+                warpsConfig = YamlConfiguration.loadConfiguration(warpsFile);
+            } catch (IOException e) {
+                plugin.getLogger().warning("Failed to create warp.yml: " + e.getMessage());
+                warpsConfig = new YamlConfiguration();
             }
+        } else {
+            warpsConfig = YamlConfiguration.loadConfiguration(warpsFile);
         }
-        warpsConfig = YamlConfiguration.loadConfiguration(warpsFile);
         
         for (String warpName : warpsConfig.getKeys(false)) {
-            try {
+            World world = plugin.getServer().getWorld(warpsConfig.getString(warpName + ".world"));
+            if (world != null) {
                 Location loc = new Location(
-                    plugin.getServer().getWorld(warpsConfig.getString(warpName + ".world")),
+                    world,
                     warpsConfig.getDouble(warpName + ".x"),
                     warpsConfig.getDouble(warpName + ".y"),
                     warpsConfig.getDouble(warpName + ".z"),
@@ -44,27 +54,31 @@ public class WarpManager {
                     (float) warpsConfig.getDouble(warpName + ".pitch")
                 );
                 warps.put(warpName.toLowerCase(), new Warp(warpName, loc));
-            } catch (Exception e) {
-                plugin.getLogger().warning("Failed to load warp " + warpName + ": " + e.getMessage());
             }
         }
     }
     
     public void saveWarps() {
+        for (String key : warpsConfig.getKeys(false)) {
+            warpsConfig.set(key, null);
+        }
+        
         for (Map.Entry<String, Warp> entry : warps.entrySet()) {
             Location loc = entry.getValue().getLocation();
-            warpsConfig.set(entry.getKey() + ".world", loc.getWorld().getName());
-            warpsConfig.set(entry.getKey() + ".x", loc.getX());
-            warpsConfig.set(entry.getKey() + ".y", loc.getY());
-            warpsConfig.set(entry.getKey() + ".z", loc.getZ());
-            warpsConfig.set(entry.getKey() + ".yaw", loc.getYaw());
-            warpsConfig.set(entry.getKey() + ".pitch", loc.getPitch());
+            if (loc != null && loc.getWorld() != null) {
+                warpsConfig.set(entry.getKey() + ".world", loc.getWorld().getName());
+                warpsConfig.set(entry.getKey() + ".x", loc.getX());
+                warpsConfig.set(entry.getKey() + ".y", loc.getY());
+                warpsConfig.set(entry.getKey() + ".z", loc.getZ());
+                warpsConfig.set(entry.getKey() + ".yaw", loc.getYaw());
+                warpsConfig.set(entry.getKey() + ".pitch", loc.getPitch());
+            }
         }
         
         try {
             warpsConfig.save(warpsFile);
-        } catch (Exception e) {
-            plugin.getLogger().warning("Failed to save warps: " + e.getMessage());
+        } catch (IOException e) {
+            plugin.getLogger().warning("Failed to save warp.yml: " + e.getMessage());
         }
     }
     
@@ -72,7 +86,7 @@ public class WarpManager {
         if (warps.containsKey(name.toLowerCase())) {
             return false;
         }
-        warps.put(name.toLowerCase(), new Warp(name, location));
+        warps.put(name.toLowerCase(), new Warp(name, location.clone()));
         saveWarps();
         return true;
     }
@@ -87,14 +101,22 @@ public class WarpManager {
     }
     
     public Warp getWarp(String name) {
-        return warps.get(name.toLowerCase());
+        Warp warp = warps.get(name.toLowerCase());
+        if (warp != null && warp.getLocation() != null) {
+            return new Warp(warp.getName(), warp.getLocation().clone());
+        }
+        return null;
     }
     
     public Map<String, Warp> getWarps() {
-        return new HashMap<>(warps);
+        Map<String, Warp> cloned = new HashMap<>();
+        for (Map.Entry<String, Warp> entry : warps.entrySet()) {
+            cloned.put(entry.getKey(), new Warp(entry.getValue().getName(), entry.getValue().getLocation().clone()));
+        }
+        return cloned;
     }
     
     public boolean warpExists(String name) {
         return warps.containsKey(name.toLowerCase());
     }
-                    }
+             }

@@ -157,8 +157,8 @@ public class TPAManager {
         tpAuto.put(player.getUniqueId(), enabled);
         
         if (enabled) {
-            startPersistentActionBar(player);
             plugin.getMessageManager().sendMessage(player, "tpauto-on", "tpa");
+            startPersistentActionBar(player);
         } else {
             stopPersistentActionBar(player);
             plugin.getMessageManager().sendMessage(player, "tpauto-off", "tpa");
@@ -175,7 +175,7 @@ public class TPAManager {
                 return;
             }
             plugin.getMessageManager().sendMessage(player, "tpauto-on-persistent", "tpa");
-        }, null, 20L, 100L);
+        }, null, 1L, 1L);
         
         persistentTasks.put(player.getUniqueId(), task);
     }
@@ -219,4 +219,4 @@ public class TPAManager {
             scheduler.shutdownNow();
         }
     }
-            }
+                }

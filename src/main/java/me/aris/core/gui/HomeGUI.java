@@ -48,6 +48,10 @@ public class HomeGUI implements Listener {
         return ChatColor.translateAlternateColorCodes('&', buffer.toString());
     }
     
+    private String stripColor(String input) {
+        return ChatColor.stripColor(translateHexColors(input));
+    }
+    
     public void openHomeGUI(Player player) {
         loadGuiConfig();
         
@@ -68,20 +72,22 @@ public class HomeGUI implements Listener {
         int maxHomes = plugin.getHomeManager().getMaxHomes(player);
         int currentHomes = homes.size();
         
+        List<String> homeNames = new java.util.ArrayList<>(homes.keySet());
+        
         for (int i = 0; i < bedSlots.size(); i++) {
             int bedSlot = bedSlots.get(i);
             int dyeSlot = dyeSlots.get(i);
             
             if (i < currentHomes) {
-                String homeName = (String) homes.keySet().toArray()[i];
+                String homeName = homeNames.get(i);
                 gui.setItem(bedSlot, createHomeBedItem(homeName, true, true));
                 gui.setItem(dyeSlot, createHomeDyeItem(homeName, true, true));
             } else if (i < maxHomes) {
-                gui.setItem(bedSlot, createHomeBedItem("not-set", false, true));
-                gui.setItem(dyeSlot, createHomeDyeItem("not-set", false, true));
+                gui.setItem(bedSlot, createHomeBedItem("", false, true));
+                gui.setItem(dyeSlot, createHomeDyeItem("", false, true));
             } else {
-                gui.setItem(bedSlot, createHomeBedItem("no-permission", false, false));
-                gui.setItem(dyeSlot, createHomeDyeItem("no-permission", false, false));
+                gui.setItem(bedSlot, createHomeBedItem("", false, false));
+                gui.setItem(dyeSlot, createHomeDyeItem("", false, false));
             }
         }
         
@@ -99,7 +105,7 @@ public class HomeGUI implements Listener {
         }
         
         String name = guiConfig.getString(path + ".name", "&7Unknown");
-        name = name.replace("%home%", homeName.equals("not-set") ? "" : homeName);
+        name = name.replace("%home%", homeName);
         name = translateHexColors(name);
         
         String materialName = guiConfig.getString(path + ".material", hasHome ? "LIGHT_BLUE_BED" : "LIGHT_GRAY_BED");
@@ -117,7 +123,7 @@ public class HomeGUI implements Listener {
         List<String> lore = guiConfig.getStringList(path + ".lore");
         if (lore != null && !lore.isEmpty()) {
             List<String> coloredLore = lore.stream()
-                .map(line -> line.replace("%home%", homeName.equals("not-set") ? "" : homeName))
+                .map(line -> line.replace("%home%", homeName))
                 .map(this::translateHexColors)
                 .toList();
             meta.setLore(coloredLore);
@@ -138,7 +144,7 @@ public class HomeGUI implements Listener {
         }
         
         String name = guiConfig.getString(path + ".name", "&7Unknown");
-        name = name.replace("%home%", homeName.equals("not-set") ? "" : homeName);
+        name = name.replace("%home%", homeName);
         name = translateHexColors(name);
         
         String materialName = guiConfig.getString(path + ".material", hasHome ? "BLUE_DYE" : "GRAY_DYE");
@@ -156,7 +162,7 @@ public class HomeGUI implements Listener {
         List<String> lore = guiConfig.getStringList(path + ".lore");
         if (lore != null && !lore.isEmpty()) {
             List<String> coloredLore = lore.stream()
-                .map(line -> line.replace("%home%", homeName.equals("not-set") ? "" : homeName))
+                .map(line -> line.replace("%home%", homeName))
                 .map(this::translateHexColors)
                 .toList();
             meta.setLore(coloredLore);
@@ -182,23 +188,26 @@ public class HomeGUI implements Listener {
         if (clicked == null || !clicked.hasItemMeta()) return;
         
         String displayName = ChatColor.stripColor(clicked.getItemMeta().getDisplayName());
+        String notSetName = stripColor(guiConfig.getString("icons.home-not-set.bed.name", "&7ɴᴏ ʜᴏᴍᴇ ꜱᴇᴛ"));
+        String noPermName = stripColor(guiConfig.getString("icons.no-permission.bed.name", "&cɴᴏ ᴘᴇʀᴍɪꜱꜱɪᴏɴ"));
         
-        String homeNotSetName = ChatColor.stripColor(translateHexColors(guiConfig.getString("icons.home-not-set.bed.name", "&7ɴᴏ ʜᴏᴍᴇ ꜱᴇᴛ")));
-        String noPermissionName = ChatColor.stripColor(translateHexColors(guiConfig.getString("icons.no-permission.bed.name", "&cɴᴏ ᴘᴇʀᴍɪꜱꜱɪᴏɴ")));
-        
-        if (displayName.contains(homeNotSetName) || displayName.equals(homeNotSetName)) {
+        if (displayName.contains(notSetName) || displayName.equals(notSetName)) {
             player.closeInventory();
-            player.performCommand("sethome");
-        } else if (displayName.contains(noPermissionName) || displayName.equals(noPermissionName)) {
+            int nextSlot = plugin.getHomeManager().getHomes(player).size() + 1;
+            player.performCommand("sethome " + nextSlot);
+        } else if (displayName.contains(noPermName) || displayName.equals(noPermName)) {
             player.closeInventory();
             plugin.getMessageManager().sendMessage(player, "home-limit-reached", "home", 
                 Map.of("current", String.valueOf(plugin.getHomeManager().getHomes(player).size()),
                        "max", String.valueOf(plugin.getHomeManager().getMaxHomes(player))));
-        } else if (displayName.contains("ʜᴏᴍᴇ") || displayName.contains("HOME")) {
-            String homeName = displayName.replaceAll("(?i)home", "").trim();
+        } else {
+            String rawName = clicked.getItemMeta().getDisplayName();
+            String coloredName = translateHexColors(rawName);
+            String cleanName = ChatColor.stripColor(coloredName);
+            String homeName = cleanName.replaceAll("ʜᴏᴍᴇ", "").replaceAll("HOME", "").trim();
+            
             if (homeName.isEmpty()) {
-                String[] parts = displayName.split(" ");
-                homeName = parts[parts.length - 1];
+                homeName = "1";
             }
             
             if (clicked.getType() == Material.BLUE_DYE || clicked.getType().name().contains("DYE")) {
@@ -210,4 +219,4 @@ public class HomeGUI implements Listener {
             }
         }
     }
-    }
+            }

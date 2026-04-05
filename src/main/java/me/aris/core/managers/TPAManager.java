@@ -175,7 +175,7 @@ public class TPAManager {
                 return;
             }
             plugin.getMessageManager().sendMessage(player, "tpauto-on-persistent", "tpa");
-        }, null, 0L, 100L);
+        }, null, 20L, 100L);
         
         persistentTasks.put(player.getUniqueId(), task);
     }
@@ -219,4 +219,4 @@ public class TPAManager {
             scheduler.shutdownNow();
         }
     }
-    }
+            }

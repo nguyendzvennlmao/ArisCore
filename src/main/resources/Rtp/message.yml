@@ -15,6 +15,3 @@ message:
   
   chat-no-safe-location: "&cCould not find a safe location to teleport!"
   actionbar-no-safe-location: "&cNo safe location found"
-  
-  chat-world-not-configured: "&cThis world is not configured for RTP!"
-  actionbar-world-not-configured: "&cWorld not configured"

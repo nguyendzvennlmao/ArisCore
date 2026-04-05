@@ -3,7 +3,9 @@ package me.aris.core.gui;
 import me.aris.core.ArisCore;
 import me.aris.core.models.Home;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -14,80 +16,164 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class HomeGUI implements Listener {
     private ArisCore plugin;
+    private FileConfiguration guiConfig;
+    private static final Pattern HEX_PATTERN = Pattern.compile("&#([A-Fa-f0-9]{6})");
     
     public HomeGUI(ArisCore plugin) {
         this.plugin = plugin;
+        loadGuiConfig();
+    }
+    
+    private void loadGuiConfig() {
+        guiConfig = plugin.getConfigManager().getHomeGuiConfig();
+        if (guiConfig == null) {
+            guiConfig = new org.bukkit.configuration.file.YamlConfiguration();
+        }
+    }
+    
+    private String translateHexColors(String message) {
+        Matcher matcher = HEX_PATTERN.matcher(message);
+        StringBuffer buffer = new StringBuffer();
+        while (matcher.find()) {
+            String hexCode = matcher.group(1);
+            StringBuilder replacement = new StringBuilder(net.md_5.bungee.api.ChatColor.of("#" + hexCode).toString());
+            matcher.appendReplacement(buffer, replacement.toString());
+        }
+        matcher.appendTail(buffer);
+        return ChatColor.translateAlternateColorCodes('&', buffer.toString());
     }
     
     public void openHomeGUI(Player player) {
-        Inventory gui = Bukkit.createInventory(null, 36, "§8ʜᴏᴍᴇꜱ");
+        loadGuiConfig();
+        
+        String title = guiConfig.getString("title", "&8ʜᴏᴍᴇꜱ");
+        int rows = guiConfig.getInt("rows", 4);
+        
+        Inventory gui = Bukkit.createInventory(null, rows * 9, translateHexColors(title));
+        
+        String bedsSlotsStr = guiConfig.getString("slots.beds", "11,12,13,14,15");
+        String dyesSlotsStr = guiConfig.getString("slots.dyes", "20,21,22,23,24");
+        
+        List<Integer> bedSlots = Arrays.stream(bedsSlotsStr.split(","))
+            .map(String::trim).map(Integer::parseInt).toList();
+        List<Integer> dyeSlots = Arrays.stream(dyesSlotsStr.split(","))
+            .map(String::trim).map(Integer::parseInt).toList();
         
         Map<String, Home> homes = plugin.getHomeManager().getHomes(player);
         int maxHomes = plugin.getHomeManager().getMaxHomes(player);
+        int currentHomes = homes.size();
         
-        List<Integer> bedSlots = Arrays.asList(11, 12, 13, 14, 15);
-        List<Integer> dyeSlots = Arrays.asList(20, 21, 22, 23, 24);
-        
-        for (int i = 0; i < maxHomes && i < 5; i++) {
+        for (int i = 0; i < bedSlots.size(); i++) {
             int bedSlot = bedSlots.get(i);
             int dyeSlot = dyeSlots.get(i);
             
-            if (i < homes.size()) {
+            if (i < currentHomes) {
                 String homeName = (String) homes.keySet().toArray()[i];
-                gui.setItem(bedSlot, createHomeBedItem(homeName, true));
-                gui.setItem(dyeSlot, createHomeDyeItem(homeName, true));
+                gui.setItem(bedSlot, createHomeBedItem(homeName, true, true));
+                gui.setItem(dyeSlot, createHomeDyeItem(homeName, true, true));
+            } else if (i < maxHomes) {
+                gui.setItem(bedSlot, createHomeBedItem("not-set", false, true));
+                gui.setItem(dyeSlot, createHomeDyeItem("not-set", false, true));
             } else {
-                gui.setItem(bedSlot, createHomeBedItem("not-set", false));
-                gui.setItem(dyeSlot, createHomeDyeItem("not-set", false));
+                gui.setItem(bedSlot, createHomeBedItem("no-permission", false, false));
+                gui.setItem(dyeSlot, createHomeDyeItem("no-permission", false, false));
             }
         }
         
         player.openInventory(gui);
     }
     
-    private ItemStack createHomeBedItem(String homeName, boolean hasHome) {
-        ItemStack item;
-        if (hasHome) {
-            item = new ItemStack(Material.LIGHT_BLUE_BED);
-            ItemMeta meta = item.getItemMeta();
-            meta.setDisplayName("§bʜᴏᴍᴇ " + homeName);
-            meta.setLore(Arrays.asList("§fClick to teleport"));
-            item.setItemMeta(meta);
+    private ItemStack createHomeBedItem(String homeName, boolean hasHome, boolean hasPermission) {
+        String path;
+        if (!hasPermission) {
+            path = "icons.no-permission.bed";
+        } else if (hasHome) {
+            path = "icons.home-set.bed";
         } else {
-            item = new ItemStack(Material.LIGHT_GRAY_BED);
-            ItemMeta meta = item.getItemMeta();
-            meta.setDisplayName("§7ɴᴏ ʜᴏᴍᴇ ꜱᴇᴛ");
-            meta.setLore(Arrays.asList("§fClick to save your location"));
-            item.setItemMeta(meta);
+            path = "icons.home-not-set.bed";
         }
+        
+        String name = guiConfig.getString(path + ".name", "&7Unknown");
+        name = name.replace("%home%", homeName.equals("not-set") ? "" : homeName);
+        name = translateHexColors(name);
+        
+        String materialName = guiConfig.getString(path + ".material", hasHome ? "LIGHT_BLUE_BED" : "LIGHT_GRAY_BED");
+        Material material;
+        try {
+            material = Material.valueOf(materialName);
+        } catch (IllegalArgumentException e) {
+            material = Material.LIGHT_BLUE_BED;
+        }
+        
+        ItemStack item = new ItemStack(material);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(name);
+        
+        List<String> lore = guiConfig.getStringList(path + ".lore");
+        if (lore != null && !lore.isEmpty()) {
+            List<String> coloredLore = lore.stream()
+                .map(line -> line.replace("%home%", homeName.equals("not-set") ? "" : homeName))
+                .map(this::translateHexColors)
+                .toList();
+            meta.setLore(coloredLore);
+        }
+        
+        item.setItemMeta(meta);
         return item;
     }
     
-    private ItemStack createHomeDyeItem(String homeName, boolean hasHome) {
-        ItemStack item;
-        if (hasHome) {
-            item = new ItemStack(Material.BLUE_DYE);
-            ItemMeta meta = item.getItemMeta();
-            meta.setDisplayName("§bʜᴏᴍᴇ " + homeName);
-            meta.setLore(Arrays.asList("§fClick to delete"));
-            item.setItemMeta(meta);
+    private ItemStack createHomeDyeItem(String homeName, boolean hasHome, boolean hasPermission) {
+        String path;
+        if (!hasPermission) {
+            path = "icons.no-permission.dye";
+        } else if (hasHome) {
+            path = "icons.home-set.dye";
         } else {
-            item = new ItemStack(Material.GRAY_DYE);
-            ItemMeta meta = item.getItemMeta();
-            meta.setDisplayName("§7ɴᴏ ʜᴏᴍᴇ ꜱᴇᴛ");
-            meta.setLore(Arrays.asList("§fClick to save your location"));
-            item.setItemMeta(meta);
+            path = "icons.home-not-set.dye";
         }
+        
+        String name = guiConfig.getString(path + ".name", "&7Unknown");
+        name = name.replace("%home%", homeName.equals("not-set") ? "" : homeName);
+        name = translateHexColors(name);
+        
+        String materialName = guiConfig.getString(path + ".material", hasHome ? "BLUE_DYE" : "GRAY_DYE");
+        Material material;
+        try {
+            material = Material.valueOf(materialName);
+        } catch (IllegalArgumentException e) {
+            material = Material.BLUE_DYE;
+        }
+        
+        ItemStack item = new ItemStack(material);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(name);
+        
+        List<String> lore = guiConfig.getStringList(path + ".lore");
+        if (lore != null && !lore.isEmpty()) {
+            List<String> coloredLore = lore.stream()
+                .map(line -> line.replace("%home%", homeName.equals("not-set") ? "" : homeName))
+                .map(this::translateHexColors)
+                .toList();
+            meta.setLore(coloredLore);
+        }
+        
+        item.setItemMeta(meta);
         return item;
     }
     
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player)) return;
-        if (!event.getView().getTitle().equals("§8ʜᴏᴍᴇꜱ")) return;
+        
+        String title = event.getView().getTitle();
+        String guiTitle = translateHexColors(guiConfig.getString("title", "&8ʜᴏᴍᴇꜱ"));
+        
+        if (!title.equals(guiTitle)) return;
         
         event.setCancelled(true);
         
@@ -95,15 +181,28 @@ public class HomeGUI implements Listener {
         ItemStack clicked = event.getCurrentItem();
         if (clicked == null || !clicked.hasItemMeta()) return;
         
-        String displayName = clicked.getItemMeta().getDisplayName();
+        String displayName = ChatColor.stripColor(clicked.getItemMeta().getDisplayName());
         
-        if (displayName.contains("ɴᴏ ʜᴏᴍᴇ ꜱᴇᴛ")) {
+        String homeNotSetName = ChatColor.stripColor(translateHexColors(guiConfig.getString("icons.home-not-set.bed.name", "&7ɴᴏ ʜᴏᴍᴇ ꜱᴇᴛ")));
+        String noPermissionName = ChatColor.stripColor(translateHexColors(guiConfig.getString("icons.no-permission.bed.name", "&cɴᴏ ᴘᴇʀᴍɪꜱꜱɪᴏɴ")));
+        
+        if (displayName.contains(homeNotSetName) || displayName.equals(homeNotSetName)) {
             player.closeInventory();
             player.performCommand("sethome");
-        } else if (displayName.contains("ʜᴏᴍᴇ")) {
-            String homeName = displayName.substring(displayName.indexOf("ʜᴏᴍᴇ") + 6).trim();
+        } else if (displayName.contains(noPermissionName) || displayName.equals(noPermissionName)) {
+            player.closeInventory();
+            plugin.getMessageManager().sendMessage(player, "home-limit-reached", "home", 
+                Map.of("current", String.valueOf(plugin.getHomeManager().getHomes(player).size()),
+                       "max", String.valueOf(plugin.getHomeManager().getMaxHomes(player))));
+        } else if (displayName.contains("ʜᴏᴍᴇ") || displayName.contains("HOME")) {
+            String homeName = displayName.replaceAll("(?i)home", "").trim();
+            if (homeName.isEmpty()) {
+                String[] parts = displayName.split(" ");
+                homeName = parts[parts.length - 1];
+            }
             
-            if (clicked.getType() == Material.BLUE_DYE) {
+            if (clicked.getType() == Material.BLUE_DYE || clicked.getType().name().contains("DYE")) {
+                player.closeInventory();
                 plugin.getConfirmGUI().openConfirmGUI(player, homeName);
             } else {
                 player.closeInventory();
@@ -111,4 +210,4 @@ public class HomeGUI implements Listener {
             }
         }
     }
-  }
+    }

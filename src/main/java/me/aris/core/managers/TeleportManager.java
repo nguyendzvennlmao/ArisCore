@@ -22,7 +22,7 @@ public class TeleportManager {
             cancelTeleport(player);
         }
         
-        TeleportTask task = new TeleportTask(plugin, player, targetLocation, onComplete, onCancel);
+        TeleportTask task = new TeleportTask(player, targetLocation, onComplete, onCancel);
         activeTeleports.put(player.getUniqueId(), task);
         task.start();
     }
@@ -39,7 +39,6 @@ public class TeleportManager {
     }
     
     private class TeleportTask {
-        private ArisCore plugin;
         private Player player;
         private Location startLocation;
         private Location targetLocation;
@@ -49,8 +48,7 @@ public class TeleportManager {
         private int taskId;
         private boolean cancelled;
         
-        public TeleportTask(ArisCore plugin, Player player, Location targetLocation, Runnable onComplete, Runnable onCancel) {
-            this.plugin = plugin;
+        public TeleportTask(Player player, Location targetLocation, Runnable onComplete, Runnable onCancel) {
             this.player = player;
             this.startLocation = player.getLocation().clone();
             this.targetLocation = targetLocation;
@@ -126,11 +124,13 @@ public class TeleportManager {
         
         public void cancel() {
             cancelled = true;
-            Bukkit.getScheduler().cancelTask(taskId);
+            if (taskId != 0) {
+                org.bukkit.Bukkit.getScheduler().cancelTask(taskId);
+            }
         }
         
         private String getModuleName() {
-            return "warp";
+            return "home";
         }
     }
-      }
+                              }

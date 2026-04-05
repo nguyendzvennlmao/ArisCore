@@ -13,6 +13,7 @@ public class ConfigManager {
     private FileConfiguration warpConfig;
     private FileConfiguration spawnConfig;
     private FileConfiguration tpaConfig;
+    private FileConfiguration rtpConfig;
     
     public ConfigManager(ArisCore plugin) {
         this.plugin = plugin;
@@ -28,6 +29,7 @@ public class ConfigManager {
         warpConfig = loadModuleConfig("Warp");
         spawnConfig = loadModuleConfig("Spawn");
         tpaConfig = loadModuleConfig("Tpa");
+        rtpConfig = loadModuleConfig("Rtp");
     }
     
     private FileConfiguration loadModuleConfig(String module) {
@@ -67,4 +69,5 @@ public class ConfigManager {
     public FileConfiguration getWarpConfig() { return warpConfig; }
     public FileConfiguration getSpawnConfig() { return spawnConfig; }
     public FileConfiguration getTpaConfig() { return tpaConfig; }
+    public FileConfiguration getRtpConfig() { return rtpConfig; }
     }

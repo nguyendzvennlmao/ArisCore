@@ -25,20 +25,28 @@ public class WarpManager {
     
     private void loadWarps() {
         if (!warpsFile.exists()) {
-            plugin.saveResource("warps.yml", false);
+            try {
+                warpsFile.createNewFile();
+            } catch (Exception e) {
+                plugin.getLogger().warning("Failed to create warps.yml: " + e.getMessage());
+            }
         }
         warpsConfig = YamlConfiguration.loadConfiguration(warpsFile);
         
         for (String warpName : warpsConfig.getKeys(false)) {
-            Location loc = new Location(
-                plugin.getServer().getWorld(warpsConfig.getString(warpName + ".world")),
-                warpsConfig.getDouble(warpName + ".x"),
-                warpsConfig.getDouble(warpName + ".y"),
-                warpsConfig.getDouble(warpName + ".z"),
-                (float) warpsConfig.getDouble(warpName + ".yaw"),
-                (float) warpsConfig.getDouble(warpName + ".pitch")
-            );
-            warps.put(warpName.toLowerCase(), new Warp(warpName, loc));
+            try {
+                Location loc = new Location(
+                    plugin.getServer().getWorld(warpsConfig.getString(warpName + ".world")),
+                    warpsConfig.getDouble(warpName + ".x"),
+                    warpsConfig.getDouble(warpName + ".y"),
+                    warpsConfig.getDouble(warpName + ".z"),
+                    (float) warpsConfig.getDouble(warpName + ".yaw"),
+                    (float) warpsConfig.getDouble(warpName + ".pitch")
+                );
+                warps.put(warpName.toLowerCase(), new Warp(warpName, loc));
+            } catch (Exception e) {
+                plugin.getLogger().warning("Failed to load warp " + warpName + ": " + e.getMessage());
+            }
         }
     }
     
@@ -65,6 +73,7 @@ public class WarpManager {
             return false;
         }
         warps.put(name.toLowerCase(), new Warp(name, location));
+        saveWarps();
         return true;
     }
     
@@ -73,6 +82,7 @@ public class WarpManager {
             return false;
         }
         warps.remove(name.toLowerCase());
+        saveWarps();
         return true;
     }
     
@@ -87,4 +97,4 @@ public class WarpManager {
     public boolean warpExists(String name) {
         return warps.containsKey(name.toLowerCase());
     }
-                                      }
+                    }

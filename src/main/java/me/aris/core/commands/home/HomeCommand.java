@@ -6,8 +6,6 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import java.util.HashMap;
-import java.util.Map;
 
 public class HomeCommand implements CommandExecutor {
     private ArisCore plugin;
@@ -30,7 +28,7 @@ public class HomeCommand implements CommandExecutor {
             return true;
         }
         
-        if (args.length == 0 && plugin.getConfigManager().getHomeConfig().getBoolean("gui.enabled", true)) {
+        if (plugin.getConfigManager().getHomeConfig().getBoolean("gui.enabled", true) && args.length == 0) {
             plugin.getHomeGUI().openHomeGUI(player);
             return true;
         }
@@ -38,25 +36,19 @@ public class HomeCommand implements CommandExecutor {
         String homeName = args.length > 0 ? args[0] : "home";
         
         if (!plugin.getHomeManager().hasHome(player, homeName)) {
-            Map<String, String> placeholders = new HashMap<>();
-            placeholders.put("home", homeName);
-            plugin.getMessageManager().sendMessage(player, "home-not-found", "home", placeholders);
+            plugin.getMessageManager().sendMessage(player, "home-not-found", "home", "home", homeName);
             return true;
         }
         
         Home home = plugin.getHomeManager().getHome(player, homeName);
-        if (home == null || home.getLocation() == null) {
-            Map<String, String> placeholders = new HashMap<>();
-            placeholders.put("home", homeName);
-            plugin.getMessageManager().sendMessage(player, "home-not-found", "home", placeholders);
+        if (home == null) {
+            plugin.getMessageManager().sendMessage(player, "home-not-found", "home", "home", homeName);
             return true;
         }
         
         plugin.getTeleportManager().startTeleport(player, home.getLocation(), "home",
             () -> {
-                Map<String, String> placeholders = new HashMap<>();
-                placeholders.put("home", homeName);
-                plugin.getMessageManager().sendMessage(player, "teleport-success", "home", placeholders);
+                plugin.getMessageManager().sendMessage(player, "teleport-success", "home", "home", homeName);
             },
             () -> {
                 plugin.getMessageManager().sendMessage(player, "teleport-cancelled-movement", "home");
@@ -65,4 +57,4 @@ public class HomeCommand implements CommandExecutor {
         
         return true;
     }
-    }
+                                                   }

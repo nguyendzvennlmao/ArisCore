@@ -131,4 +131,4 @@ public class ArisCore extends JavaPlugin {
     public HomeGUI getHomeGUI() { return homeGUI; }
     public WarpGUI getWarpGUI() { return warpGUI; }
     public ConfirmGUI getConfirmGUI() { return confirmGUI; }
-  }
+}

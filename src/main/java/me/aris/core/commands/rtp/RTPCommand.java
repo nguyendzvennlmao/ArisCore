@@ -52,23 +52,26 @@ public class RTPCommand implements CommandExecutor {
         }
         
         World world = player.getWorld();
-        Location safeLocation = findSafeLocation(world);
         
-        if (safeLocation == null) {
-            plugin.getMessageManager().sendMessage(player, "no-safe-location", "rtp");
-            return true;
-        }
-        
-        cooldowns.put(player.getUniqueId(), System.currentTimeMillis());
-        
-        plugin.getTeleportManager().startTeleport(player, safeLocation,
-            () -> {
-                plugin.getMessageManager().sendMessage(player, "teleport-success", "rtp");
-            },
-            () -> {
-                plugin.getMessageManager().sendMessage(player, "teleport-cancelled-movement", "rtp");
+        player.getScheduler().run(plugin, scheduledTask -> {
+            Location safeLocation = findSafeLocation(world);
+            
+            if (safeLocation == null) {
+                plugin.getMessageManager().sendMessage(player, "no-safe-location", "rtp");
+                return;
             }
-        );
+            
+            cooldowns.put(player.getUniqueId(), System.currentTimeMillis());
+            
+            plugin.getTeleportManager().startTeleport(player, safeLocation,
+                () -> {
+                    plugin.getMessageManager().sendMessage(player, "teleport-success", "rtp");
+                },
+                () -> {
+                    plugin.getMessageManager().sendMessage(player, "teleport-cancelled-movement", "rtp");
+                }
+            );
+        }, null);
         
         return true;
     }
@@ -91,12 +94,11 @@ public class RTPCommand implements CommandExecutor {
             
             int y = minY + random.nextInt(maxY - minY + 1);
             
-            Location loc = new Location(world, x, y, z);
+            Location loc = new Location(world, x + 0.5, y, z + 0.5);
             if (isSafeLocation(loc)) {
                 return loc;
             }
         }
-        
         return null;
     }
     
@@ -118,7 +120,7 @@ public class RTPCommand implements CommandExecutor {
             return false;
         }
         
-        if (!groundBlock.getType().isSolid() && groundBlock.getType() != Material.GRASS_BLOCK) {
+        if (!groundBlock.getType().isSolid() && groundBlock.getType() != Material.GRASS_BLOCK && groundBlock.getType() != Material.SAND && groundBlock.getType() != Material.STONE) {
             return false;
         }
         
@@ -126,10 +128,6 @@ public class RTPCommand implements CommandExecutor {
             return false;
         }
         
-        if (world.getNearbyEntities(location, 2, 2, 2).stream().anyMatch(e -> !e.isDead())) {
-            return false;
-        }
-        
         return true;
     }
-          }
+        }

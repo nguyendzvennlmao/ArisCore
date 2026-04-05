@@ -22,6 +22,8 @@ import me.aris.core.listeners.AFKListener;
 import me.aris.core.listeners.TeleportListener;
 import me.aris.core.managers.*;
 import me.aris.core.teleport.TeleportExecutor;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class ArisCore extends JavaPlugin {
@@ -44,7 +46,32 @@ public class ArisCore extends JavaPlugin {
     public void onEnable() {
         instance = this;
         
+        printLogo();
+        
         saveDefaultConfig();
+        saveResourceIfNotExists("spawn.yml");
+        saveResourceIfNotExists("homes.yml");
+        saveResourceIfNotExists("warps.yml");
+        saveResourceIfNotExists("afk-location.yml");
+        
+        saveResourceIfNotExists("Afk/config.yml");
+        saveResourceIfNotExists("Afk/message.yml");
+        saveResourceIfNotExists("Home/config.yml");
+        saveResourceIfNotExists("Home/message.yml");
+        saveResourceIfNotExists("Home/gui/home.yml");
+        saveResourceIfNotExists("Home/gui/confirm.yml");
+        saveResourceIfNotExists("Spawn/config.yml");
+        saveResourceIfNotExists("Spawn/message.yml");
+        saveResourceIfNotExists("Tpa/config.yml");
+        saveResourceIfNotExists("Tpa/message.yml");
+        saveResourceIfNotExists("Tpa/gui/tpa.yml");
+        saveResourceIfNotExists("Tpa/gui/tpahere.yml");
+        saveResourceIfNotExists("Warp/config.yml");
+        saveResourceIfNotExists("Warp/message.yml");
+        saveResourceIfNotExists("Warp/gui.yml");
+        saveResourceIfNotExists("Rtp/config.yml");
+        saveResourceIfNotExists("Rtp/message.yml");
+        saveResourceIfNotExists("Rtp/gui.yml");
         
         configManager = new ConfigManager(this);
         messageManager = new MessageManager(this);
@@ -63,7 +90,29 @@ public class ArisCore extends JavaPlugin {
         registerCommands();
         registerListeners();
         
-        getLogger().info("ArisCore has been enabled!");
+        getLogger().info(ChatColor.GREEN + "ArisCore has been enabled!");
+    }
+    
+    private void printLogo() {
+        String logo = 
+            "\n" +
+            "&8&m----------------------------------------\n" +
+            "&6&#facc15ArisCore &fv1.0\n" +
+            "&aAuthor: VennLMAO\n" +
+            "&#ff0812Support: folia - 1.21.x\n" +
+            "&8&m----------------------------------------";
+        
+        String[] lines = logo.split("\n");
+        for (String line : lines) {
+            Bukkit.getConsoleSender().sendMessage(ChatColor.translateAlternateColorCodes('&', line));
+        }
+    }
+    
+    private void saveResourceIfNotExists(String path) {
+        java.io.File file = new java.io.File(getDataFolder(), path);
+        if (!file.exists()) {
+            saveResource(path, false);
+        }
     }
 
     @Override
@@ -143,4 +192,4 @@ public class ArisCore extends JavaPlugin {
     public WarpGUI getWarpGUI() { return warpGUI; }
     public ConfirmGUI getConfirmGUI() { return confirmGUI; }
     public RTPGUI getRTPGUI() { return rtpGUI; }
-    }
+}

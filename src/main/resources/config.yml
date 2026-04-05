@@ -4,6 +4,7 @@ modules:
   warp: true
   spawn: true
   afk: true
+  rtp: true
 
 settings:
   teleport:

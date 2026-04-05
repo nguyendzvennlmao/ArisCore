@@ -63,7 +63,7 @@ public class RTPCommand implements CommandExecutor {
             
             cooldowns.put(player.getUniqueId(), System.currentTimeMillis());
             
-            plugin.getTeleportManager().startTeleport(player, safeLocation,
+            plugin.getTeleportManager().startTeleport(player, safeLocation, "rtp",
                 () -> {
                     plugin.getMessageManager().sendMessage(player, "teleport-success", "rtp");
                 },
@@ -95,8 +95,11 @@ public class RTPCommand implements CommandExecutor {
             int y = minY + random.nextInt(maxY - minY + 1);
             
             Location loc = new Location(world, x + 0.5, y, z + 0.5);
-            if (isSafeLocation(loc)) {
-                return loc;
+            
+            if (world.isChunkLoaded(loc.getBlockX() >> 4, loc.getBlockZ() >> 4)) {
+                if (isSafeLocation(loc)) {
+                    return loc;
+                }
             }
         }
         return null;
@@ -130,4 +133,4 @@ public class RTPCommand implements CommandExecutor {
         
         return true;
     }
-        }
+            }

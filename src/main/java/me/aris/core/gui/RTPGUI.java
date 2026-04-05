@@ -2,6 +2,7 @@ package me.aris.core.gui;
 
 import me.aris.core.ArisCore;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -19,17 +20,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class RTPGUI implements Listener {
     private ArisCore plugin;
     private Random random;
-    private Map<Player, Long> cooldowns;
+    private Map<UUID, Long> cooldowns;
     private FileConfiguration guiConfig;
     
     public RTPGUI(ArisCore plugin) {
         this.plugin = plugin;
         this.random = new Random();
-        this.cooldowns = new HashMap<>();
+        this.cooldowns = new ConcurrentHashMap<>();
         loadGuiConfig();
     }
     
@@ -38,19 +41,21 @@ public class RTPGUI implements Listener {
         if (guiFile.exists()) {
             guiConfig = YamlConfiguration.loadConfiguration(guiFile);
         } else {
+            guiConfig = new YamlConfiguration();
             plugin.saveResource("Rtp/gui.yml", false);
-            guiConfig = YamlConfiguration.loadConfiguration(guiFile);
         }
     }
     
+    private String translateColors(String message) {
+        return ChatColor.translateAlternateColorCodes('&', message);
+    }
+    
     public void openRTPGUI(Player player) {
-        if (guiConfig == null) {
-            loadGuiConfig();
-        }
+        loadGuiConfig();
         
         FileConfiguration rtpConfig = plugin.getConfigManager().getRtpConfig();
         int cooldownSeconds = rtpConfig.getInt("cooldown-seconds", 60);
-        long lastUse = cooldowns.getOrDefault(player, 0L);
+        long lastUse = cooldowns.getOrDefault(player.getUniqueId(), 0L);
         long remaining = (lastUse + cooldownSeconds * 1000L) - System.currentTimeMillis();
         
         if (remaining > 0) {
@@ -63,7 +68,7 @@ public class RTPGUI implements Listener {
         String title = guiConfig.getString("title", "&8ʀᴀɴᴅᴏᴍ ᴛᴇʟᴇᴘᴏʀᴛ");
         int rows = guiConfig.getInt("rows", 3);
         
-        Inventory gui = Bukkit.createInventory(null, rows * 9, org.bukkit.ChatColor.translateAlternateColorCodes('&', title));
+        Inventory gui = Bukkit.createInventory(null, rows * 9, translateColors(title));
         
         for (String worldName : guiConfig.getConfigurationSection("worlds").getKeys(false)) {
             int slot = guiConfig.getInt("worlds." + worldName + ".slot");
@@ -80,10 +85,10 @@ public class RTPGUI implements Listener {
             
             ItemStack item = new ItemStack(material);
             ItemMeta meta = item.getItemMeta();
-            meta.setDisplayName(org.bukkit.ChatColor.translateAlternateColorCodes('&', displayName));
+            meta.setDisplayName(translateColors(displayName));
             if (lore != null && !lore.isEmpty()) {
                 List<String> coloredLore = lore.stream()
-                    .map(line -> org.bukkit.ChatColor.translateAlternateColorCodes('&', line))
+                    .map(this::translateColors)
                     .toList();
                 meta.setLore(coloredLore);
             }
@@ -99,7 +104,7 @@ public class RTPGUI implements Listener {
         if (!(event.getWhoClicked() instanceof Player)) return;
         Player player = (Player) event.getWhoClicked();
         String title = event.getView().getTitle();
-        String guiTitle = org.bukkit.ChatColor.translateAlternateColorCodes('&', guiConfig.getString("title", "&8ʀᴀɴᴅᴏᴍ ᴛᴇʟᴇᴘᴏʀᴛ"));
+        String guiTitle = translateColors(guiConfig.getString("title", "&8ʀᴀɴᴅᴏᴍ ᴛᴇʟᴇᴘᴏʀᴛ"));
         
         if (!title.equals(guiTitle)) return;
         
@@ -108,10 +113,10 @@ public class RTPGUI implements Listener {
         ItemStack clicked = event.getCurrentItem();
         if (clicked == null || !clicked.hasItemMeta()) return;
         
-        String clickedName = clicked.getItemMeta().getDisplayName();
+        String clickedName = ChatColor.stripColor(clicked.getItemMeta().getDisplayName());
         
         for (String worldName : guiConfig.getConfigurationSection("worlds").getKeys(false)) {
-            String displayName = org.bukkit.ChatColor.translateAlternateColorCodes('&', guiConfig.getString("worlds." + worldName + ".name", "&f" + worldName));
+            String displayName = ChatColor.stripColor(translateColors(guiConfig.getString("worlds." + worldName + ".name", "&f" + worldName)));
             
             if (clickedName.equals(displayName)) {
                 World world = Bukkit.getWorld(worldName);
@@ -123,7 +128,7 @@ public class RTPGUI implements Listener {
                 
                 FileConfiguration rtpConfig = plugin.getConfigManager().getRtpConfig();
                 int cooldownSeconds = rtpConfig.getInt("cooldown-seconds", 60);
-                long lastUse = cooldowns.getOrDefault(player, 0L);
+                long lastUse = cooldowns.getOrDefault(player.getUniqueId(), 0L);
                 long remaining = (lastUse + cooldownSeconds * 1000L) - System.currentTimeMillis();
                 
                 if (remaining > 0) {
@@ -134,31 +139,33 @@ public class RTPGUI implements Listener {
                     return;
                 }
                 
-                int maxRetries = rtpConfig.getInt("max-retries", 50);
-                int maxRadius = guiConfig.getInt("worlds." + worldName + ".max-radius", 5000);
-                int minRadius = guiConfig.getInt("worlds." + worldName + ".min-radius", 100);
-                int minY = guiConfig.getInt("worlds." + worldName + ".min-y", 63);
-                int maxY = guiConfig.getInt("worlds." + worldName + ".max-y", 120);
-                
-                Location safeLocation = findSafeLocation(world, maxRetries, maxRadius, minRadius, minY, maxY);
-                
-                if (safeLocation == null) {
-                    plugin.getMessageManager().sendMessage(player, "no-safe-location", "rtp");
-                    player.closeInventory();
-                    return;
-                }
-                
-                cooldowns.put(player, System.currentTimeMillis());
                 player.closeInventory();
                 
-                plugin.getTeleportManager().startTeleport(player, safeLocation, "rtp",
-                    () -> {
-                        plugin.getMessageManager().sendMessage(player, "teleport-success", "rtp");
-                    },
-                    () -> {
-                        plugin.getMessageManager().sendMessage(player, "teleport-cancelled-movement", "rtp");
+                player.getScheduler().run(plugin, scheduledTask -> {
+                    int maxRetries = rtpConfig.getInt("max-retries", 50);
+                    int maxRadius = guiConfig.getInt("worlds." + worldName + ".max-radius", 5000);
+                    int minRadius = guiConfig.getInt("worlds." + worldName + ".min-radius", 100);
+                    int minY = guiConfig.getInt("worlds." + worldName + ".min-y", 63);
+                    int maxY = guiConfig.getInt("worlds." + worldName + ".max-y", 120);
+                    
+                    Location safeLocation = findSafeLocation(world, maxRetries, maxRadius, minRadius, minY, maxY);
+                    
+                    if (safeLocation == null) {
+                        plugin.getMessageManager().sendMessage(player, "no-safe-location", "rtp");
+                        return;
                     }
-                );
+                    
+                    cooldowns.put(player.getUniqueId(), System.currentTimeMillis());
+                    
+                    plugin.getTeleportManager().startTeleport(player, safeLocation,
+                        () -> {
+                            plugin.getMessageManager().sendMessage(player, "teleport-success", "rtp");
+                        },
+                        () -> {
+                            plugin.getMessageManager().sendMessage(player, "teleport-cancelled-movement", "rtp");
+                        }
+                    );
+                }, null);
                 break;
             }
         }
@@ -177,11 +184,8 @@ public class RTPGUI implements Listener {
             int y = minY + random.nextInt(maxY - minY + 1);
             
             Location loc = new Location(world, x + 0.5, y, z + 0.5);
-            
-            if (world.isChunkLoaded(loc.getBlockX() >> 4, loc.getBlockZ() >> 4)) {
-                if (isSafeLocation(loc)) {
-                    return loc;
-                }
+            if (isSafeLocation(loc)) {
+                return loc;
             }
         }
         return null;
@@ -215,4 +219,4 @@ public class RTPGUI implements Listener {
         
         return true;
     }
-            }
+    }

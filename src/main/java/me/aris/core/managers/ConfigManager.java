@@ -67,4 +67,4 @@ public class ConfigManager {
     public FileConfiguration getWarpConfig() { return warpConfig; }
     public FileConfiguration getSpawnConfig() { return spawnConfig; }
     public FileConfiguration getTpaConfig() { return tpaConfig; }
-                             }
+    }

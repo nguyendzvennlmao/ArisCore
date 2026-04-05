@@ -16,10 +16,10 @@ public class TeleportManager {
         this.activeTeleports = new HashMap<>();
     }
     
-    public void startTeleport(Player player, Location targetLocation, Runnable onComplete, Runnable onCancel) {
+    public void startTeleport(Player player, Location targetLocation, String module, Runnable onComplete, Runnable onCancel) {
         cancelTeleport(player);
         
-        TeleportTask task = new TeleportTask(player, targetLocation, onComplete, onCancel);
+        TeleportTask task = new TeleportTask(player, targetLocation, module, onComplete, onCancel);
         task.start();
     }
     
@@ -38,16 +38,18 @@ public class TeleportManager {
         private Player player;
         private Location startLocation;
         private Location targetLocation;
+        private String module;
         private Runnable onComplete;
         private Runnable onCancel;
         private int countdown;
         private io.papermc.paper.threadedregions.scheduler.ScheduledTask task;
         private boolean cancelled;
         
-        public TeleportTask(Player player, Location targetLocation, Runnable onComplete, Runnable onCancel) {
+        public TeleportTask(Player player, Location targetLocation, String module, Runnable onComplete, Runnable onCancel) {
             this.player = player;
             this.startLocation = player.getLocation().clone();
             this.targetLocation = targetLocation;
+            this.module = module;
             this.onComplete = onComplete;
             this.onCancel = onCancel;
             this.countdown = plugin.getConfigManager().getTeleportCountdown();
@@ -78,7 +80,7 @@ public class TeleportManager {
                 
                 Map<String, String> placeholders = new HashMap<>();
                 placeholders.put("time", String.valueOf(countdown));
-                plugin.getMessageManager().sendTeleportCountdown(player, "home", countdown, placeholders);
+                plugin.getMessageManager().sendTeleportCountdown(player, module, countdown, placeholders);
                 countdown--;
             }, null, 1L, 20L);
             
@@ -92,7 +94,7 @@ public class TeleportManager {
             if (allowedRange > 0) {
                 double distance = startLocation.distance(currentLocation);
                 if (distance > allowedRange) {
-                    plugin.getMessageManager().sendTeleportCancelled(player, "home", "movement");
+                    plugin.getMessageManager().sendTeleportCancelled(player, module, "movement");
                     return true;
                 }
             }
@@ -105,7 +107,7 @@ public class TeleportManager {
             Location finalLocation = targetLocation.clone();
             player.teleportAsync(finalLocation).thenAccept(success -> {
                 if (success) {
-                    plugin.getMessageManager().sendTeleportSuccess(player, "home");
+                    plugin.getMessageManager().sendTeleportSuccess(player, module);
                     if (onComplete != null) {
                         onComplete.run();
                     }
@@ -120,4 +122,4 @@ public class TeleportManager {
             }
         }
     }
-                               }
+    }

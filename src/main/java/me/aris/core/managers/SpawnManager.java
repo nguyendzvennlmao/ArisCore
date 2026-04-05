@@ -2,9 +2,10 @@ package me.aris.core.managers;
 
 import me.aris.core.ArisCore;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.Player;
 import java.io.File;
+import java.io.IOException;
 
 public class SpawnManager {
     private ArisCore plugin;
@@ -14,7 +15,11 @@ public class SpawnManager {
     
     public SpawnManager(ArisCore plugin) {
         this.plugin = plugin;
-        this.spawnFile = new File(plugin.getDataFolder(), "spawn.yml");
+        File locationFolder = new File(plugin.getDataFolder(), "Location");
+        if (!locationFolder.exists()) {
+            locationFolder.mkdirs();
+        }
+        this.spawnFile = new File(locationFolder, "spawn.yml");
         loadSpawn();
     }
     
@@ -22,26 +27,32 @@ public class SpawnManager {
         if (!spawnFile.exists()) {
             try {
                 spawnFile.createNewFile();
-            } catch (Exception e) {
+                spawnConfig = YamlConfiguration.loadConfiguration(spawnFile);
+            } catch (IOException e) {
                 plugin.getLogger().warning("Failed to create spawn.yml: " + e.getMessage());
+                spawnConfig = new YamlConfiguration();
             }
+        } else {
+            spawnConfig = YamlConfiguration.loadConfiguration(spawnFile);
         }
-        spawnConfig = YamlConfiguration.loadConfiguration(spawnFile);
         
         if (spawnConfig.contains("world")) {
-            spawnLocation = new Location(
-                plugin.getServer().getWorld(spawnConfig.getString("world")),
-                spawnConfig.getDouble("x"),
-                spawnConfig.getDouble("y"),
-                spawnConfig.getDouble("z"),
-                (float) spawnConfig.getDouble("yaw"),
-                (float) spawnConfig.getDouble("pitch")
-            );
+            World world = plugin.getServer().getWorld(spawnConfig.getString("world"));
+            if (world != null) {
+                spawnLocation = new Location(
+                    world,
+                    spawnConfig.getDouble("x"),
+                    spawnConfig.getDouble("y"),
+                    spawnConfig.getDouble("z"),
+                    (float) spawnConfig.getDouble("yaw"),
+                    (float) spawnConfig.getDouble("pitch")
+                );
+            }
         }
     }
     
     public void saveSpawn() {
-        if (spawnLocation != null) {
+        if (spawnLocation != null && spawnLocation.getWorld() != null) {
             spawnConfig.set("world", spawnLocation.getWorld().getName());
             spawnConfig.set("x", spawnLocation.getX());
             spawnConfig.set("y", spawnLocation.getY());
@@ -50,14 +61,14 @@ public class SpawnManager {
             spawnConfig.set("pitch", spawnLocation.getPitch());
             try {
                 spawnConfig.save(spawnFile);
-            } catch (Exception e) {
-                plugin.getLogger().warning("Failed to save spawn: " + e.getMessage());
+            } catch (IOException e) {
+                plugin.getLogger().warning("Failed to save spawn.yml: " + e.getMessage());
             }
         }
     }
     
     public void setSpawn(Location location) {
-        this.spawnLocation = location;
+        this.spawnLocation = location.clone();
         saveSpawn();
     }
     
@@ -66,13 +77,19 @@ public class SpawnManager {
         if (spawnFile.exists()) {
             spawnFile.delete();
         }
+        try {
+            spawnFile.createNewFile();
+            spawnConfig = YamlConfiguration.loadConfiguration(spawnFile);
+        } catch (IOException e) {
+            plugin.getLogger().warning("Failed to reset spawn.yml: " + e.getMessage());
+        }
     }
     
     public Location getSpawn() {
-        return spawnLocation;
+        return spawnLocation != null ? spawnLocation.clone() : null;
     }
     
     public boolean hasSpawn() {
-        return spawnLocation != null;
+        return spawnLocation != null && spawnLocation.getWorld() != null;
     }
                             }

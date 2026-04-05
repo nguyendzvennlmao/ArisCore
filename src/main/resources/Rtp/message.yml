@@ -1,0 +1,20 @@
+prefix: "&8[&6RTP&8]&r "
+
+message:
+  chat-cooldown: "&cYou must wait &e%time% &cseconds before using RTP again!"
+  actionbar-cooldown: "&cRTP cooldown: %time%s"
+  
+  chat-teleport-countdown: "&7Random teleporting in &b%time%&7 seconds."
+  actionbar-teleport-countdown: "&7Random teleporting in %time%s"
+  
+  chat-teleport-cancelled-movement: "&cThe transfer was cancelled because you have already moved."
+  actionbar-teleport-cancelled-movement: "&cTransfer cancelled - you moved"
+  
+  chat-teleport-success: "&aYou have been randomly teleported!"
+  actionbar-teleport-success: "&aRandom teleported!"
+  
+  chat-no-safe-location: "&cCould not find a safe location to teleport!"
+  actionbar-no-safe-location: "&cNo safe location found"
+  
+  chat-world-not-configured: "&cThis world is not configured for RTP!"
+  actionbar-world-not-configured: "&cWorld not configured"

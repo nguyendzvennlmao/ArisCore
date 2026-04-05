@@ -3,10 +3,11 @@ package me.aris.core.managers;
 import me.aris.core.ArisCore;
 import me.aris.core.models.Home;
 import org.bukkit.Location;
-import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.World;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -19,7 +20,11 @@ public class HomeManager {
     public HomeManager(ArisCore plugin) {
         this.plugin = plugin;
         this.homes = new ConcurrentHashMap<>();
-        this.homesFile = new File(plugin.getDataFolder(), "homes.yml");
+        File locationFolder = new File(plugin.getDataFolder(), "Location");
+        if (!locationFolder.exists()) {
+            locationFolder.mkdirs();
+        }
+        this.homesFile = new File(locationFolder, "home.yml");
         loadHomes();
     }
     
@@ -27,11 +32,14 @@ public class HomeManager {
         if (!homesFile.exists()) {
             try {
                 homesFile.createNewFile();
-            } catch (Exception e) {
-                plugin.getLogger().warning("Failed to create homes.yml: " + e.getMessage());
+                homesConfig = YamlConfiguration.loadConfiguration(homesFile);
+            } catch (IOException e) {
+                plugin.getLogger().warning("Failed to create home.yml: " + e.getMessage());
+                homesConfig = new YamlConfiguration();
             }
+        } else {
+            homesConfig = YamlConfiguration.loadConfiguration(homesFile);
         }
-        homesConfig = YamlConfiguration.loadConfiguration(homesFile);
         
         for (String uuidStr : homesConfig.getKeys(false)) {
             try {
@@ -40,15 +48,18 @@ public class HomeManager {
                 
                 for (String homeName : homesConfig.getConfigurationSection(uuidStr).getKeys(false)) {
                     String path = uuidStr + "." + homeName;
-                    Location loc = new Location(
-                        plugin.getServer().getWorld(homesConfig.getString(path + ".world")),
-                        homesConfig.getDouble(path + ".x"),
-                        homesConfig.getDouble(path + ".y"),
-                        homesConfig.getDouble(path + ".z"),
-                        (float) homesConfig.getDouble(path + ".yaw"),
-                        (float) homesConfig.getDouble(path + ".pitch")
-                    );
-                    playerHomes.put(homeName.toLowerCase(), new Home(homeName, loc));
+                    World world = plugin.getServer().getWorld(homesConfig.getString(path + ".world"));
+                    if (world != null) {
+                        Location loc = new Location(
+                            world,
+                            homesConfig.getDouble(path + ".x"),
+                            homesConfig.getDouble(path + ".y"),
+                            homesConfig.getDouble(path + ".z"),
+                            (float) homesConfig.getDouble(path + ".yaw"),
+                            (float) homesConfig.getDouble(path + ".pitch")
+                        );
+                        playerHomes.put(homeName.toLowerCase(), new Home(homeName, loc));
+                    }
                 }
                 homes.put(uuid, playerHomes);
             } catch (Exception e) {
@@ -58,35 +69,35 @@ public class HomeManager {
     }
     
     public void saveHomes() {
+        for (String key : homesConfig.getKeys(false)) {
+            homesConfig.set(key, null);
+        }
+        
         for (Map.Entry<UUID, Map<String, Home>> entry : homes.entrySet()) {
             String uuid = entry.getKey().toString();
             for (Map.Entry<String, Home> homeEntry : entry.getValue().entrySet()) {
                 String path = uuid + "." + homeEntry.getKey();
                 Location loc = homeEntry.getValue().getLocation();
-                homesConfig.set(path + ".world", loc.getWorld().getName());
-                homesConfig.set(path + ".x", loc.getX());
-                homesConfig.set(path + ".y", loc.getY());
-                homesConfig.set(path + ".z", loc.getZ());
-                homesConfig.set(path + ".yaw", loc.getYaw());
-                homesConfig.set(path + ".pitch", loc.getPitch());
-            }
-        }
-        
-        for (String uuid : homesConfig.getKeys(false)) {
-            if (!homes.containsKey(UUID.fromString(uuid))) {
-                homesConfig.set(uuid, null);
+                if (loc != null && loc.getWorld() != null) {
+                    homesConfig.set(path + ".world", loc.getWorld().getName());
+                    homesConfig.set(path + ".x", loc.getX());
+                    homesConfig.set(path + ".y", loc.getY());
+                    homesConfig.set(path + ".z", loc.getZ());
+                    homesConfig.set(path + ".yaw", loc.getYaw());
+                    homesConfig.set(path + ".pitch", loc.getPitch());
+                }
             }
         }
         
         try {
             homesConfig.save(homesFile);
-        } catch (Exception e) {
-            plugin.getLogger().warning("Failed to save homes: " + e.getMessage());
+        } catch (IOException e) {
+            plugin.getLogger().warning("Failed to save home.yml: " + e.getMessage());
         }
     }
     
     public int getMaxHomes(Player player) {
-        FileConfiguration homeConfig = plugin.getConfigManager().getHomeConfig();
+        org.bukkit.configuration.file.FileConfiguration homeConfig = plugin.getConfigManager().getHomeConfig();
         int max = homeConfig.getInt("max-homes.default", 1);
         
         if (homeConfig.contains("max-homes")) {
@@ -112,7 +123,7 @@ public class HomeManager {
             return false;
         }
         
-        playerHomes.put(name.toLowerCase(), new Home(name, location));
+        playerHomes.put(name.toLowerCase(), new Home(name, location.clone()));
         saveHomes();
         return true;
     }
@@ -130,15 +141,24 @@ public class HomeManager {
     public Home getHome(Player player, String name) {
         Map<String, Home> playerHomes = homes.get(player.getUniqueId());
         if (playerHomes == null) return null;
-        return playerHomes.get(name.toLowerCase());
+        Home home = playerHomes.get(name.toLowerCase());
+        if (home != null && home.getLocation() != null) {
+            return new Home(home.getName(), home.getLocation().clone());
+        }
+        return null;
     }
     
     public Map<String, Home> getHomes(Player player) {
-        return homes.getOrDefault(player.getUniqueId(), new HashMap<>());
+        Map<String, Home> playerHomes = homes.getOrDefault(player.getUniqueId(), new HashMap<>());
+        Map<String, Home> cloned = new HashMap<>();
+        for (Map.Entry<String, Home> entry : playerHomes.entrySet()) {
+            cloned.put(entry.getKey(), new Home(entry.getValue().getName(), entry.getValue().getLocation().clone()));
+        }
+        return cloned;
     }
     
     public boolean hasHome(Player player, String name) {
         Map<String, Home> playerHomes = homes.get(player.getUniqueId());
         return playerHomes != null && playerHomes.containsKey(name.toLowerCase());
     }
-                    }
+                }

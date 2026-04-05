@@ -141,6 +141,7 @@ public class RTPGUI implements Listener {
                 
                 player.closeInventory();
                 
+                World finalWorld = world;
                 player.getScheduler().run(plugin, scheduledTask -> {
                     int maxRetries = rtpConfig.getInt("max-retries", 50);
                     int maxRadius = guiConfig.getInt("worlds." + worldName + ".max-radius", 5000);
@@ -148,7 +149,7 @@ public class RTPGUI implements Listener {
                     int minY = guiConfig.getInt("worlds." + worldName + ".min-y", 63);
                     int maxY = guiConfig.getInt("worlds." + worldName + ".max-y", 120);
                     
-                    Location safeLocation = findSafeLocation(world, maxRetries, maxRadius, minRadius, minY, maxY);
+                    Location safeLocation = findSafeLocation(finalWorld, maxRetries, maxRadius, minRadius, minY, maxY);
                     
                     if (safeLocation == null) {
                         plugin.getMessageManager().sendMessage(player, "no-safe-location", "rtp");
@@ -159,10 +160,10 @@ public class RTPGUI implements Listener {
                     
                     plugin.getTeleportManager().startTeleport(player, safeLocation, "rtp",
                         () -> {
-                            plugin.getMessageManager().sendMessage(player, "teleport-success", "rtp");
+                            plugin.getMessageManager().sendTeleportSuccess(player, "rtp");
                         },
                         () -> {
-                            plugin.getMessageManager().sendMessage(player, "teleport-cancelled-movement", "rtp");
+                            plugin.getMessageManager().sendTeleportCancelled(player, "rtp", "movement");
                         }
                     );
                 }, null);
@@ -196,6 +197,8 @@ public class RTPGUI implements Listener {
         int x = location.getBlockX();
         int y = location.getBlockY();
         int z = location.getBlockZ();
+        
+        if (world == null) return false;
         
         org.bukkit.block.Block feetBlock = world.getBlockAt(x, y, z);
         org.bukkit.block.Block headBlock = world.getBlockAt(x, y + 1, z);

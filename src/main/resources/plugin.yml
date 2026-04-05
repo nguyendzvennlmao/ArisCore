@@ -1,0 +1,114 @@
+name: ArisCore
+version: 1.0
+main: me.aris.core.ArisCore
+api-version: "1.21"
+folia-supported: true
+description: Core plugin with TPA, Home, Warp, Spawn, AFK
+author: Aris
+
+commands:
+  tpa:
+    description: Request to teleport to a player
+    usage: /tpa <player>
+  tpahere:
+    description: Request a player to teleport to you
+    usage: /tpahere <player>
+    aliases: [tphere]
+  tpaccept:
+    description: Accept a teleport request
+    usage: /tpaccept [player]
+    aliases: [tpyes]
+  tpdeny:
+    description: Deny a teleport request
+    usage: /tpdeny [player]
+    aliases: [tpno]
+  tpacancel:
+    description: Cancel your outgoing teleport requests
+    usage: /tpacancel
+  tpatoggle:
+    description: Toggle accepting teleport requests
+    usage: /tpatoggle
+  tpaheretoggle:
+    description: Toggle accepting teleport-here requests
+    usage: /tpaheretoggle
+  tpauto:
+    description: Toggle auto-accepting teleport requests
+    usage: /tpauto
+  home:
+    description: Teleport to your home
+    usage: /home [name]
+  sethome:
+    description: Set your home
+    usage: /sethome [name]
+  delhome:
+    description: Delete your home
+    usage: /delhome [name]
+  warp:
+    description: Teleport to a warp
+    usage: /warp <name>
+  setwarp:
+    description: Create a warp
+    usage: /setwarp <name>
+  delwarp:
+    description: Delete a warp
+    usage: /delwarp <name>
+  spawn:
+    description: Teleport to spawn
+    usage: /spawn
+  setspawn:
+    description: Set spawn location
+    usage: /setspawn
+  delspawn:
+    description: Delete spawn location
+    usage: /delspawn
+  afk:
+    description: Toggle AFK mode
+    usage: /afk
+  setafk:
+    description: Set AFK location
+    usage: /setafk
+  delafk:
+    description: Delete AFK location
+    usage: /delafk
+
+permissions:
+  ariscore.tpa:
+    default: true
+  ariscore.tpahere:
+    default: true
+  ariscore.tpaccept:
+    default: true
+  ariscore.tpdeny:
+    default: true
+  ariscore.tpacancel:
+    default: true
+  ariscore.tpatoggle:
+    default: true
+  ariscore.tpaheretoggle:
+    default: true
+  ariscore.tpauto:
+    default: true
+  ariscore.home:
+    default: true
+  ariscore.sethome:
+    default: true
+  ariscore.delhome:
+    default: true
+  ariscore.warp:
+    default: true
+  ariscore.setwarp:
+    default: op
+  ariscore.delwarp:
+    default: op
+  ariscore.spawn:
+    default: true
+  ariscore.setspawn:
+    default: op
+  ariscore.delspawn:
+    default: op
+  ariscore.afk:
+    default: true
+  ariscore.setafk:
+    default: op
+  ariscore.delafk:
+    default: op

@@ -1,0 +1,14 @@
+modules:
+  tpa: true
+  home: true
+  warp: true
+  spawn: true
+  afk: true
+
+settings:
+  teleport:
+    countdown: 5
+    allowed-walk-range: 0.1
+    cancel-on-move: true
+    cancel-on-damage: true
+    cancel-on-fly: true

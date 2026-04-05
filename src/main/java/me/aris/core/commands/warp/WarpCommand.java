@@ -6,8 +6,6 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import java.util.HashMap;
-import java.util.Map;
 
 public class WarpCommand implements CommandExecutor {
     private ArisCore plugin;
@@ -35,9 +33,7 @@ public class WarpCommand implements CommandExecutor {
                 plugin.getMessageManager().sendMessage(player, "no-warps", "warp");
             } else {
                 String warps = String.join(", ", plugin.getWarpManager().getWarps().keySet());
-                Map<String, String> placeholders = new HashMap<>();
-                placeholders.put("warps", warps);
-                plugin.getMessageManager().sendMessage(player, "warp-list", "warp", placeholders);
+                plugin.getMessageManager().sendMessage(player, "warp-list", "warp", "warps", warps);
             }
             return true;
         }
@@ -45,25 +41,15 @@ public class WarpCommand implements CommandExecutor {
         String warpName = args[0];
         
         if (!plugin.getWarpManager().warpExists(warpName)) {
-            Map<String, String> placeholders = new HashMap<>();
-            placeholders.put("warp", warpName);
-            plugin.getMessageManager().sendMessage(player, "warp-not-found", "warp", placeholders);
+            plugin.getMessageManager().sendMessage(player, "warp-not-found", "warp", "warp", warpName);
             return true;
         }
         
         Warp warp = plugin.getWarpManager().getWarp(warpName);
-        if (warp == null || warp.getLocation() == null) {
-            Map<String, String> placeholders = new HashMap<>();
-            placeholders.put("warp", warpName);
-            plugin.getMessageManager().sendMessage(player, "warp-not-found", "warp", placeholders);
-            return true;
-        }
         
         plugin.getTeleportManager().startTeleport(player, warp.getLocation(), "warp",
             () -> {
-                Map<String, String> placeholders = new HashMap<>();
-                placeholders.put("warp", warpName);
-                plugin.getMessageManager().sendMessage(player, "teleport-success", "warp", placeholders);
+                plugin.getMessageManager().sendMessage(player, "teleport-success", "warp", "warp", warpName);
             },
             () -> {
                 plugin.getMessageManager().sendMessage(player, "teleport-cancelled-movement", "warp");
@@ -72,4 +58,4 @@ public class WarpCommand implements CommandExecutor {
         
         return true;
     }
-    }
+                    }

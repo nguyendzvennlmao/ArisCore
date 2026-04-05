@@ -1,0 +1,32 @@
+prefix: "&8[&bHome&8]&r "
+
+message:
+  chat-home-not-set: "&cYou don't have a home set!"
+  actionbar-home-not-set: "&cYou don't have a home set"
+  
+  chat-home-not-found: "&cHome &e%home% &cnot found!"
+  actionbar-home-not-found: "&cHome %home% not found"
+  
+  chat-home-set: "&aHome &e%home% &ahas been set!"
+  actionbar-home-set: "&aHome %home% set"
+  
+  chat-home-deleted: "&aHome &e%home% &ahas been deleted!"
+  actionbar-home-deleted: "&aHome %home% deleted"
+  
+  chat-home-limit-reached: "&cYou have reached your home limit! (%current%/%max%)"
+  actionbar-home-limit-reached: "&cHome limit reached! (%current%/%max%)"
+  
+  chat-home-exists: "&cHome &e%home% &calready exists!"
+  actionbar-home-exists: "&cHome %home% already exists"
+  
+  chat-home-invalid-name: "&cInvalid home name! Use only letters and numbers."
+  actionbar-home-invalid-name: "&cInvalid home name"
+  
+  chat-teleport-countdown: "&7Teleporting to home &e%home%&7 in &b%time%&7 seconds."
+  actionbar-teleport-countdown: "&7Teleporting to home %home% in %time%s"
+  
+  chat-teleport-cancelled-movement: "&cThe transfer was cancelled because you have already moved."
+  actionbar-teleport-cancelled-movement: "&cTransfer cancelled - you moved"
+  
+  chat-teleport-success: "&aTeleported to home &e%home%&a!"
+  actionbar-teleport-success: "&aTeleported to home %home%"

@@ -14,25 +14,35 @@ import java.util.regex.Pattern;
 public class MessageManager {
     private ArisCore plugin;
     private Map<String, FileConfiguration> messageConfigs;
-    private Map<String, Map<String, String>> messageCache;
     private static final Pattern HEX_PATTERN = Pattern.compile("&#([A-Fa-f0-9]{6})");
     
     public MessageManager(ArisCore plugin) {
         this.plugin = plugin;
         this.messageConfigs = new HashMap<>();
-        this.messageCache = new HashMap<>();
         loadMessages();
     }
     
     public void loadMessages() {
-        String[] modules = {"Afk", "Home", "Spawn", "Tpa", "Warp"};
+        String[] modules = {"Afk", "Home", "Spawn", "Tpa", "Warp", "Rtp"};
         for (String module : modules) {
             File file = new File(plugin.getDataFolder(), module + "/message.yml");
             if (file.exists()) {
                 messageConfigs.put(module.toLowerCase(), YamlConfiguration.loadConfiguration(file));
             }
-            messageCache.put(module.toLowerCase(), new HashMap<>());
         }
+    }
+    
+    private String translateColors(String message) {
+        if (message == null) return "";
+        Matcher matcher = HEX_PATTERN.matcher(message);
+        StringBuffer buffer = new StringBuffer();
+        while (matcher.find()) {
+            String hexCode = matcher.group(1);
+            StringBuilder replacement = new StringBuilder(net.md_5.bungee.api.ChatColor.of("#" + hexCode).toString());
+            matcher.appendReplacement(buffer, replacement.toString());
+        }
+        matcher.appendTail(buffer);
+        return ChatColor.translateAlternateColorCodes('&', buffer.toString());
     }
     
     private String getRawMessage(String module, String path) {
@@ -44,17 +54,12 @@ public class MessageManager {
         return translateColors(prefix + message);
     }
     
-    private String translateColors(String message) {
-        message = ChatColor.translateAlternateColorCodes('&', message);
-        Matcher matcher = HEX_PATTERN.matcher(message);
-        StringBuffer buffer = new StringBuffer();
-        while (matcher.find()) {
-            String hexCode = matcher.group(1);
-            StringBuilder replacement = new StringBuilder(net.md_5.bungee.api.ChatColor.of("#" + hexCode).toString());
-            matcher.appendReplacement(buffer, replacement.toString());
-        }
-        matcher.appendTail(buffer);
-        return buffer.toString();
+    private String getActionBarMessage(String module, String path) {
+        FileConfiguration messages = messageConfigs.get(module.toLowerCase());
+        if (messages == null) return "";
+        String message = messages.getString("message.actionbar-" + path, "");
+        if (message.isEmpty()) return "";
+        return translateColors(message);
     }
     
     public void sendMessage(Player player, String path, String module) {
@@ -70,9 +75,8 @@ public class MessageManager {
     public void sendMessage(Player player, String path, String module, Map<String, String> placeholders) {
         if (player == null) return;
         
-        FileConfiguration moduleConfig = getModuleConfig(module);
-        boolean chatEnabled = moduleConfig.getBoolean("messages.chat", true);
-        boolean actionBarEnabled = moduleConfig.getBoolean("messages.action-bar", true);
+        boolean chatEnabled = plugin.getConfigManager().isChatEnabled(module);
+        boolean actionBarEnabled = plugin.getConfigManager().isActionBarEnabled(module);
         
         if (chatEnabled) {
             String chatMessage = getRawMessage(module, "chat-" + path);
@@ -85,7 +89,7 @@ public class MessageManager {
         }
         
         if (actionBarEnabled) {
-            String actionBarMessage = getRawMessage(module, "actionbar-" + path);
+            String actionBarMessage = getActionBarMessage(module, path);
             for (Map.Entry<String, String> entry : placeholders.entrySet()) {
                 actionBarMessage = actionBarMessage.replace("%" + entry.getKey() + "%", entry.getValue());
             }
@@ -95,7 +99,8 @@ public class MessageManager {
         }
     }
     
-    public void sendTeleportCountdown(Player player, String module, int time, Map<String, String> placeholders) {
+    public void sendTeleportCountdown(Player player, String module, int time, Map<String, String> extraPlaceholders) {
+        Map<String, String> placeholders = new HashMap<>(extraPlaceholders);
         placeholders.put("time", String.valueOf(time));
         sendMessage(player, "teleport-countdown", module, placeholders);
     }
@@ -111,15 +116,4 @@ public class MessageManager {
     public void sendTeleportSuccess(Player player, String module) {
         sendMessage(player, "teleport-success", module);
     }
-    
-    private FileConfiguration getModuleConfig(String module) {
-        switch (module.toLowerCase()) {
-            case "afk": return plugin.getConfigManager().getAfkConfig();
-            case "home": return plugin.getConfigManager().getHomeConfig();
-            case "spawn": return plugin.getConfigManager().getSpawnConfig();
-            case "tpa": return plugin.getConfigManager().getTpaConfig();
-            case "warp": return plugin.getConfigManager().getWarpConfig();
-            default: return plugin.getConfig();
-        }
-    }
-  }
+            }

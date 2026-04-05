@@ -157,7 +157,7 @@ public class RTPGUI implements Listener {
                     
                     cooldowns.put(player.getUniqueId(), System.currentTimeMillis());
                     
-                    plugin.getTeleportManager().startTeleport(player, safeLocation,
+                    plugin.getTeleportManager().startTeleport(player, safeLocation, "rtp",
                         () -> {
                             plugin.getMessageManager().sendMessage(player, "teleport-success", "rtp");
                         },
@@ -219,4 +219,4 @@ public class RTPGUI implements Listener {
         
         return true;
     }
-    }
+}

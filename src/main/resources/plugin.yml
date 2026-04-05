@@ -3,7 +3,7 @@ version: 1.0
 main: me.aris.core.ArisCore
 api-version: "1.21"
 folia-supported: true
-description: Core plugin with TPA, Home, Warp, Spawn, AFK
+description: Core plugin with TPA, Home, Warp, Spawn, AFK, RTP
 author: Aris
 
 commands:
@@ -70,6 +70,9 @@ commands:
   delafk:
     description: Delete AFK location
     usage: /delafk
+  rtp:
+    description: Random teleport
+    usage: /rtp
 
 permissions:
   ariscore.tpa:
@@ -111,4 +114,8 @@ permissions:
   ariscore.setafk:
     default: op
   ariscore.delafk:
+    default: op
+  ariscore.rtp:
+    default: true
+  ariscore.admin:
     default: op

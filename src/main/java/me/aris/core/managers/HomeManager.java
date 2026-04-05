@@ -3,6 +3,7 @@ package me.aris.core.managers;
 import me.aris.core.ArisCore;
 import me.aris.core.models.Home;
 import org.bukkit.Location;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import java.io.File;
@@ -24,27 +25,35 @@ public class HomeManager {
     
     private void loadHomes() {
         if (!homesFile.exists()) {
-            plugin.saveResource("homes.yml", false);
+            try {
+                homesFile.createNewFile();
+            } catch (Exception e) {
+                plugin.getLogger().warning("Failed to create homes.yml: " + e.getMessage());
+            }
         }
         homesConfig = YamlConfiguration.loadConfiguration(homesFile);
         
         for (String uuidStr : homesConfig.getKeys(false)) {
-            UUID uuid = UUID.fromString(uuidStr);
-            Map<String, Home> playerHomes = new HashMap<>();
-            
-            for (String homeName : homesConfig.getConfigurationSection(uuidStr).getKeys(false)) {
-                String path = uuidStr + "." + homeName;
-                Location loc = new Location(
-                    plugin.getServer().getWorld(homesConfig.getString(path + ".world")),
-                    homesConfig.getDouble(path + ".x"),
-                    homesConfig.getDouble(path + ".y"),
-                    homesConfig.getDouble(path + ".z"),
-                    (float) homesConfig.getDouble(path + ".yaw"),
-                    (float) homesConfig.getDouble(path + ".pitch")
-                );
-                playerHomes.put(homeName, new Home(homeName, loc));
+            try {
+                UUID uuid = UUID.fromString(uuidStr);
+                Map<String, Home> playerHomes = new HashMap<>();
+                
+                for (String homeName : homesConfig.getConfigurationSection(uuidStr).getKeys(false)) {
+                    String path = uuidStr + "." + homeName;
+                    Location loc = new Location(
+                        plugin.getServer().getWorld(homesConfig.getString(path + ".world")),
+                        homesConfig.getDouble(path + ".x"),
+                        homesConfig.getDouble(path + ".y"),
+                        homesConfig.getDouble(path + ".z"),
+                        (float) homesConfig.getDouble(path + ".yaw"),
+                        (float) homesConfig.getDouble(path + ".pitch")
+                    );
+                    playerHomes.put(homeName.toLowerCase(), new Home(homeName, loc));
+                }
+                homes.put(uuid, playerHomes);
+            } catch (Exception e) {
+                plugin.getLogger().warning("Failed to load homes for " + uuidStr + ": " + e.getMessage());
             }
-            homes.put(uuid, playerHomes);
         }
     }
     
@@ -80,11 +89,13 @@ public class HomeManager {
         FileConfiguration homeConfig = plugin.getConfigManager().getHomeConfig();
         int max = homeConfig.getInt("max-homes.default", 1);
         
-        for (String permission : homeConfig.getConfigurationSection("max-homes").getKeys(false)) {
-            if (permission.equals("default")) continue;
-            if (player.hasPermission(permission)) {
-                int value = homeConfig.getInt("max-homes." + permission);
-                if (value > max) max = value;
+        if (homeConfig.contains("max-homes")) {
+            for (String permission : homeConfig.getConfigurationSection("max-homes").getKeys(false)) {
+                if (permission.equals("default")) continue;
+                if (player.hasPermission(permission)) {
+                    int value = homeConfig.getInt("max-homes." + permission);
+                    if (value > max) max = value;
+                }
             }
         }
         return max;
@@ -102,6 +113,7 @@ public class HomeManager {
         }
         
         playerHomes.put(name.toLowerCase(), new Home(name, location));
+        saveHomes();
         return true;
     }
     
@@ -111,6 +123,7 @@ public class HomeManager {
             return false;
         }
         playerHomes.remove(name.toLowerCase());
+        saveHomes();
         return true;
     }
     
@@ -128,4 +141,4 @@ public class HomeManager {
         Map<String, Home> playerHomes = homes.get(player.getUniqueId());
         return playerHomes != null && playerHomes.containsKey(name.toLowerCase());
     }
-          }
+                    }

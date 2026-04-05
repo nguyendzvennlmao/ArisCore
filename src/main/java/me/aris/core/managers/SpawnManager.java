@@ -20,7 +20,11 @@ public class SpawnManager {
     
     private void loadSpawn() {
         if (!spawnFile.exists()) {
-            plugin.saveResource("spawn.yml", false);
+            try {
+                spawnFile.createNewFile();
+            } catch (Exception e) {
+                plugin.getLogger().warning("Failed to create spawn.yml: " + e.getMessage());
+            }
         }
         spawnConfig = YamlConfiguration.loadConfiguration(spawnFile);
         
@@ -71,4 +75,4 @@ public class SpawnManager {
     public boolean hasSpawn() {
         return spawnLocation != null;
     }
-                  }
+                            }

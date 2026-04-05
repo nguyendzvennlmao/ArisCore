@@ -25,6 +25,8 @@ import me.aris.core.teleport.TeleportExecutor;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.java.JavaPlugin;
+import java.io.File;
+import java.io.IOException;
 
 public class ArisCore extends JavaPlugin {
     private static ArisCore instance;
@@ -49,29 +51,8 @@ public class ArisCore extends JavaPlugin {
         printLogo();
         
         saveDefaultConfig();
-        saveResourceIfNotExists("spawn.yml");
-        saveResourceIfNotExists("homes.yml");
-        saveResourceIfNotExists("warps.yml");
-        saveResourceIfNotExists("afk-location.yml");
         
-        saveResourceIfNotExists("Afk/config.yml");
-        saveResourceIfNotExists("Afk/message.yml");
-        saveResourceIfNotExists("Home/config.yml");
-        saveResourceIfNotExists("Home/message.yml");
-        saveResourceIfNotExists("Home/gui/home.yml");
-        saveResourceIfNotExists("Home/gui/confirm.yml");
-        saveResourceIfNotExists("Spawn/config.yml");
-        saveResourceIfNotExists("Spawn/message.yml");
-        saveResourceIfNotExists("Tpa/config.yml");
-        saveResourceIfNotExists("Tpa/message.yml");
-        saveResourceIfNotExists("Tpa/gui/tpa.yml");
-        saveResourceIfNotExists("Tpa/gui/tpahere.yml");
-        saveResourceIfNotExists("Warp/config.yml");
-        saveResourceIfNotExists("Warp/message.yml");
-        saveResourceIfNotExists("Warp/gui.yml");
-        saveResourceIfNotExists("Rtp/config.yml");
-        saveResourceIfNotExists("Rtp/message.yml");
-        saveResourceIfNotExists("Rtp/gui.yml");
+        createDataFolders();
         
         configManager = new ConfigManager(this);
         messageManager = new MessageManager(this);
@@ -97,9 +78,9 @@ public class ArisCore extends JavaPlugin {
         String logo = 
             "\n" +
             "&8&m----------------------------------------\n" +
-            "&6&#facc15ArisCore &fv1.0\n" +
+            "&eArisCore &fv1.0\n" +
             "&aAuthor: VennLMAO\n" +
-            "&#ff0812Support: folia - 1.21.x\n" +
+            "&cSupport: folia - 1.21.x\n" +
             "&8&m----------------------------------------";
         
         String[] lines = logo.split("\n");
@@ -108,10 +89,38 @@ public class ArisCore extends JavaPlugin {
         }
     }
     
-    private void saveResourceIfNotExists(String path) {
-        java.io.File file = new java.io.File(getDataFolder(), path);
+    private void createDataFolders() {
+        createFolder("");
+        createFolder("Afk");
+        createFolder("Home");
+        createFolder("Home/gui");
+        createFolder("Spawn");
+        createFolder("Tpa");
+        createFolder("Tpa/gui");
+        createFolder("Warp");
+        createFolder("Rtp");
+        
+        createFile("spawn.yml");
+        createFile("homes.yml");
+        createFile("warps.yml");
+        createFile("afk-location.yml");
+    }
+    
+    private void createFolder(String path) {
+        File folder = new File(getDataFolder(), path);
+        if (!folder.exists()) {
+            folder.mkdirs();
+        }
+    }
+    
+    private void createFile(String path) {
+        File file = new File(getDataFolder(), path);
         if (!file.exists()) {
-            saveResource(path, false);
+            try {
+                file.createNewFile();
+            } catch (IOException e) {
+                getLogger().warning("Failed to create file: " + path);
+            }
         }
     }
 
@@ -192,4 +201,4 @@ public class ArisCore extends JavaPlugin {
     public WarpGUI getWarpGUI() { return warpGUI; }
     public ConfirmGUI getConfirmGUI() { return confirmGUI; }
     public RTPGUI getRTPGUI() { return rtpGUI; }
-}
+    }

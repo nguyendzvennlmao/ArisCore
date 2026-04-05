@@ -22,9 +22,6 @@ message:
   chat-afk-location-deleted: "&cAFK location has been deleted!"
   actionbar-afk-location-deleted: "&cAFK location deleted"
   
-  chat-afk-location-not-set: "&cAFK location is not set!"
-  actionbar-afk-location-not-set: "&cAFK location not set"
-  
   chat-teleport-countdown: "&7Teleporting to AFK location in &b%time%&7 seconds."
   actionbar-teleport-countdown: "&7Teleporting to AFK location in %time%s"
   

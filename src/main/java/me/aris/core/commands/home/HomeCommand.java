@@ -28,6 +28,11 @@ public class HomeCommand implements CommandExecutor {
             return true;
         }
         
+        if (plugin.getConfigManager().getHomeConfig().getBoolean("gui.enabled", true) && args.length == 0) {
+            plugin.getHomeGUI().openHomeGUI(player);
+            return true;
+        }
+        
         String homeName = args.length > 0 ? args[0] : "home";
         
         if (!plugin.getHomeManager().hasHome(player, homeName)) {
@@ -36,6 +41,10 @@ public class HomeCommand implements CommandExecutor {
         }
         
         Home home = plugin.getHomeManager().getHome(player, homeName);
+        if (home == null) {
+            plugin.getMessageManager().sendMessage(player, "home-not-found", "home", "home", homeName);
+            return true;
+        }
         
         plugin.getTeleportManager().startTeleport(player, home.getLocation(),
             () -> {
@@ -48,4 +57,4 @@ public class HomeCommand implements CommandExecutor {
         
         return true;
     }
-          }
+            }

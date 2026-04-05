@@ -6,6 +6,7 @@ import me.aris.core.commands.afk.SetAFKCommand;
 import me.aris.core.commands.home.DelHomeCommand;
 import me.aris.core.commands.home.HomeCommand;
 import me.aris.core.commands.home.SetHomeCommand;
+import me.aris.core.commands.rtp.RTPCommand;
 import me.aris.core.commands.spawn.DelSpawnCommand;
 import me.aris.core.commands.spawn.SetSpawnCommand;
 import me.aris.core.commands.spawn.SpawnCommand;
@@ -15,6 +16,7 @@ import me.aris.core.commands.warp.SetWarpCommand;
 import me.aris.core.commands.warp.WarpCommand;
 import me.aris.core.gui.ConfirmGUI;
 import me.aris.core.gui.HomeGUI;
+import me.aris.core.gui.RTPGUI;
 import me.aris.core.gui.WarpGUI;
 import me.aris.core.listeners.AFKListener;
 import me.aris.core.listeners.TeleportListener;
@@ -36,6 +38,7 @@ public class ArisCore extends JavaPlugin {
     private HomeGUI homeGUI;
     private WarpGUI warpGUI;
     private ConfirmGUI confirmGUI;
+    private RTPGUI rtpGUI;
 
     @Override
     public void onEnable() {
@@ -55,6 +58,7 @@ public class ArisCore extends JavaPlugin {
         homeGUI = new HomeGUI(this);
         warpGUI = new WarpGUI(this);
         confirmGUI = new ConfirmGUI(this);
+        rtpGUI = new RTPGUI(this);
         
         registerCommands();
         registerListeners();
@@ -106,6 +110,10 @@ public class ArisCore extends JavaPlugin {
             getCommand("setafk").setExecutor(new SetAFKCommand(this));
             getCommand("delafk").setExecutor(new DelAFKCommand(this));
         }
+        
+        if (configManager.isModuleEnabled("rtp")) {
+            getCommand("rtp").setExecutor(new RTPCommand(this));
+        }
     }
 
     private void registerListeners() {
@@ -116,6 +124,9 @@ public class ArisCore extends JavaPlugin {
         getServer().getPluginManager().registerEvents(homeGUI, this);
         getServer().getPluginManager().registerEvents(confirmGUI, this);
         getServer().getPluginManager().registerEvents(warpGUI, this);
+        if (configManager.isModuleEnabled("rtp")) {
+            getServer().getPluginManager().registerEvents(rtpGUI, this);
+        }
     }
 
     public static ArisCore getInstance() { return instance; }
@@ -131,4 +142,5 @@ public class ArisCore extends JavaPlugin {
     public HomeGUI getHomeGUI() { return homeGUI; }
     public WarpGUI getWarpGUI() { return warpGUI; }
     public ConfirmGUI getConfirmGUI() { return confirmGUI; }
-}
+    public RTPGUI getRTPGUI() { return rtpGUI; }
+            }

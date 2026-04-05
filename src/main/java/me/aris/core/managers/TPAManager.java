@@ -4,7 +4,6 @@ import me.aris.core.ArisCore;
 import me.aris.core.models.TeleportRequest;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -18,7 +17,7 @@ public class TPAManager {
     private Map<UUID, Boolean> tpAuto;
     private Map<UUID, Boolean> guiEnabled;
     private Map<UUID, Boolean> guiHereEnabled;
-    private Map<UUID, Integer> persistentTaskIds;
+    private Map<UUID, io.papermc.paper.threadedregions.scheduler.ScheduledTask> persistentTasks;
     private ScheduledExecutorService scheduler;
     private String lastRequestDay;
     
@@ -32,7 +31,7 @@ public class TPAManager {
         this.tpAuto = new ConcurrentHashMap<>();
         this.guiEnabled = new ConcurrentHashMap<>();
         this.guiHereEnabled = new ConcurrentHashMap<>();
-        this.persistentTaskIds = new ConcurrentHashMap<>();
+        this.persistentTasks = new ConcurrentHashMap<>();
         this.scheduler = Executors.newScheduledThreadPool(2);
         this.lastRequestDay = getCurrentDay();
     }
@@ -169,25 +168,22 @@ public class TPAManager {
     private void startPersistentActionBar(Player player) {
         stopPersistentActionBar(player);
         
-        int taskId = new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (!player.isOnline() || !isTPAutoEnabled(player)) {
-                    cancel();
-                    persistentTaskIds.remove(player.getUniqueId());
-                    return;
-                }
-                plugin.getMessageManager().sendMessage(player, "tpauto-on-persistent", "tpa");
+        io.papermc.paper.threadedregions.scheduler.ScheduledTask task = player.getScheduler().runAtFixedRate(plugin, scheduledTask -> {
+            if (!player.isOnline() || !isTPAutoEnabled(player)) {
+                scheduledTask.cancel();
+                persistentTasks.remove(player.getUniqueId());
+                return;
             }
-        }.runTaskTimer(plugin, 0L, 100L).getTaskId();
+            plugin.getMessageManager().sendMessage(player, "tpauto-on-persistent", "tpa");
+        }, null, 0L, 100L);
         
-        persistentTaskIds.put(player.getUniqueId(), taskId);
+        persistentTasks.put(player.getUniqueId(), task);
     }
     
     private void stopPersistentActionBar(Player player) {
-        Integer taskId = persistentTaskIds.remove(player.getUniqueId());
-        if (taskId != null) {
-            Bukkit.getScheduler().cancelTask(taskId);
+        io.papermc.paper.threadedregions.scheduler.ScheduledTask task = persistentTasks.remove(player.getUniqueId());
+        if (task != null) {
+            task.cancel();
         }
     }
     
@@ -208,12 +204,12 @@ public class TPAManager {
     }
     
     public void shutdown() {
-        for (Integer taskId : persistentTaskIds.values()) {
-            if (taskId != null) {
-                Bukkit.getScheduler().cancelTask(taskId);
+        for (io.papermc.paper.threadedregions.scheduler.ScheduledTask task : persistentTasks.values()) {
+            if (task != null) {
+                task.cancel();
             }
         }
-        persistentTaskIds.clear();
+        persistentTasks.clear();
         scheduler.shutdown();
         try {
             if (!scheduler.awaitTermination(5, TimeUnit.SECONDS)) {
@@ -223,4 +219,4 @@ public class TPAManager {
             scheduler.shutdownNow();
         }
     }
-  }
+    }

@@ -1,0 +1,107 @@
+prefix: "&8[&bTPA&8]&r "
+
+message:
+  chat-player-not-found: "&cPlayer &e%player% &cis not online!"
+  actionbar-player-not-found: "&cPlayer %player% not online"
+  
+  chat-self-teleport: "&cYou cannot teleport to yourself!"
+  actionbar-self-teleport: "&cCannot teleport to yourself"
+  
+  chat-no-permission: "&cYou don't have permission to use this command."
+  actionbar-no-permission: "&cNo permission"
+  
+  chat-player-only: "&cThis command can only be used by players."
+  actionbar-player-only: "&cPlayer only command"
+  
+  chat-teleport-countdown: "&7Teleporting in &b%time%&7 seconds."
+  actionbar-teleport-countdown: "&7Teleporting in %time%s"
+  
+  chat-teleport-cancelled-movement: "&cThe transfer was cancelled because you have already moved."
+  actionbar-teleport-cancelled-movement: "&cTransfer cancelled - you moved"
+  
+  chat-teleport-cancelled-flying: "&cThe transfer was cancelled because the destination player started flying!"
+  actionbar-teleport-cancelled-flying: "&cTransfer cancelled - destination flying"
+  
+  chat-teleport-success: "&aTeleported successfully!"
+  actionbar-teleport-success: "&aTeleported"
+  
+  chat-teleport-failed: "&cTeleport failed - try again."
+  actionbar-teleport-failed: "&cTeleport failed"
+  
+  chat-no-requests-found: "&cYou don't have any teleport requests."
+  actionbar-no-requests-found: "&cNo teleport requests"
+  
+  chat-accepted-teleport: "&7You accepted this teleport."
+  actionbar-accepted-teleport: "&7Teleport accepted"
+  
+  chat-request-accepted: "&7Your teleport request has been accepted."
+  actionbar-request-accepted: "&7Request accepted"
+  
+  chat-teleport-to-you: "&a%player% has teleported to you."
+  actionbar-teleport-to-you: "&a%player% teleported to you"
+  
+  chat-non-valid-request: "&cTeleport request doesn't exist or has expired."
+  actionbar-non-valid-request: "&cRequest expired"
+  
+  chat-receive-request: "&b%player% sent you a tpa request.\n|<clickable>&b[CLICK TO ACCEPT] &7or type &b/tpaccept %player%"
+  actionbar-receive-request: "&b%player% sent you a tpa request"
+  
+  chat-receive-here-request: "&b%player% sent you a tphere request.\n|<clickable>&b[CLICK TO ACCEPT] &7or type &b/tpaccept %player%"
+  actionbar-receive-here-request: "&b%player% sent you a tphere request"
+  
+  chat-sent-request: "&7You sent &b%player%&7 a teleport request."
+  actionbar-sent-request: "&7Sent teleport request to %player%"
+  
+  chat-sent-here-request: "&7You sent &b%player%&7 a tphere request."
+  actionbar-sent-here-request: "&7Sent tphere request to %player%"
+  
+  chat-cancelled-request: "&cYou successfully declined %player% request."
+  actionbar-cancelled-request: "&cDeclined %player% request"
+  
+  chat-cancelled-request-sender: "&c%player% has declined your teleport request."
+  actionbar-cancelled-request-sender: "&c%player% declined your request"
+  
+  chat-already-sent-request: "&cYou have already sent a request to &e%player%&c."
+  actionbar-already-sent-request: "&cRequest already sent to %player%"
+  
+  chat-tpa-toggle-on: "&aYou're now accepting tpa requests."
+  actionbar-tpa-toggle-on: "&aAccepting tpa requests"
+  
+  chat-tpa-toggle-off: "&aYou're no longer accepting tpa requests."
+  actionbar-tpa-toggle-off: "&aNot accepting tpa requests"
+  
+  chat-tpa-here-toggle-on: "&aYou're now accepting tphere requests."
+  actionbar-tpa-here-toggle-on: "&aAccepting tphere requests"
+  
+  chat-tpa-here-toggle-off: "&aYou're no longer accepting tphere requests."
+  actionbar-tpa-here-toggle-off: "&aNot accepting tphere requests"
+  
+  chat-block-tpa-request: "&cThat user is not accepting tpa requests."
+  actionbar-block-tpa-request: "&cUser not accepting tpa"
+  
+  chat-block-tphere-request: "&cThat user is not accepting tphere requests."
+  actionbar-block-tphere-request: "&cUser not accepting tphere"
+  
+  chat-request-cooldown: "&cYou're on cooldown for sending requests to this player."
+  actionbar-request-cooldown: "&cRequest cooldown"
+  
+  chat-request-limit: "&cYou've reached your daily limit for sending requests to this player."
+  actionbar-request-limit: "&cDaily request limit reached"
+  
+  chat-request-expired: "&cYour teleport request to &e%player% &chas expired."
+  actionbar-request-expired: "&cRequest to %player% expired"
+  
+  chat-cancel-requests: "&cYou've cancelled all of your TPA requests."
+  actionbar-cancel-requests: "&cCancelled all requests"
+  
+  chat-cancel-requests-failed: "&cYou did not make any TPA requests to cancel."
+  actionbar-cancel-requests-failed: "&cNo requests to cancel"
+  
+  chat-tpauto-on: "&7You turned on tpauto."
+  actionbar-tpauto-on: "&7TPAuto ON"
+  
+  chat-tpauto-off: "&7You turned off tpauto."
+  actionbar-tpauto-off: "&7TPAuto OFF"
+  
+  chat-tpauto-on-persistent: "&#09FF00You have tpauto on."
+  actionbar-tpauto-on-persistent: "&#09FF00TPAuto ON"

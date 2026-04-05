@@ -2,6 +2,7 @@ package me.aris.core.gui;
 
 import me.aris.core.ArisCore;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -209,33 +210,10 @@ public class RTPGUI implements Listener {
             return false;
         }
         
-        if (world.getNearbyEntities(location.toBukkitLocation(), 2, 2, 2).stream().anyMatch(e -> !e.isDead())) {
+        if (world.getNearbyEntities(location, 2, 2, 2).stream().anyMatch(e -> !e.isDead())) {
             return false;
         }
         
         return true;
     }
-    
-    private static class Location {
-        private World world;
-        private double x;
-        private double y;
-        private double z;
-        
-        public Location(World world, double x, double y, double z) {
-            this.world = world;
-            this.x = x;
-            this.y = y;
-            this.z = z;
-        }
-        
-        public World getWorld() { return world; }
-        public int getBlockX() { return (int) Math.floor(x); }
-        public int getBlockY() { return (int) Math.floor(y); }
-        public int getBlockZ() { return (int) Math.floor(z); }
-        
-        public org.bukkit.Location toBukkitLocation() {
-            return new org.bukkit.Location(world, x, y, z);
-        }
     }
-}

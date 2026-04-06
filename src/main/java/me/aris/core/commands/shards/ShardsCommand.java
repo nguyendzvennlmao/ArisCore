@@ -74,22 +74,38 @@ public class ShardsCommand implements CommandExecutor {
         switch (action) {
             case "give":
                 plugin.getShardsManager().addShards(target, amount);
-                plugin.getMessageManager().sendMessage(sender, "added", "shards", placeholders);
+                if (sender instanceof Player) {
+                    plugin.getMessageManager().sendMessage((Player) sender, "added", "shards", placeholders);
+                } else {
+                    sender.sendMessage("§aAdded §6" + amount + " Shards §ato §e" + target.getName());
+                }
                 break;
             case "take":
                 if (plugin.getShardsManager().removeShards(target, amount)) {
-                    plugin.getMessageManager().sendMessage(sender, "taken", "shards", placeholders);
+                    if (sender instanceof Player) {
+                        plugin.getMessageManager().sendMessage((Player) sender, "taken", "shards", placeholders);
+                    } else {
+                        sender.sendMessage("§cTaken §6" + amount + " Shards §cfrom §e" + target.getName());
+                    }
                 } else {
                     sender.sendMessage("Player doesn't have enough shards!");
                 }
                 break;
             case "set":
                 plugin.getShardsManager().setShards(target, amount);
-                plugin.getMessageManager().sendMessage(sender, "set", "shards", placeholders);
+                if (sender instanceof Player) {
+                    plugin.getMessageManager().sendMessage((Player) sender, "set", "shards", placeholders);
+                } else {
+                    sender.sendMessage("§aSet §e" + target.getName() + " §abalance to §6" + amount + " Shards");
+                }
                 break;
             case "reset":
                 plugin.getShardsManager().setShards(target, plugin.getShardsManager().getStartBalance());
-                plugin.getMessageManager().sendMessage(sender, "reset", "shards", "player", target.getName());
+                if (sender instanceof Player) {
+                    plugin.getMessageManager().sendMessage((Player) sender, "reset", "shards", "player", target.getName());
+                } else {
+                    sender.sendMessage("§aReset §e" + target.getName() + " §abalance to §60 Shards");
+                }
                 break;
             default:
                 sender.sendMessage("Usage: /shards <give|take|set|reset|balance> [player] [amount]");
@@ -97,4 +113,4 @@ public class ShardsCommand implements CommandExecutor {
         
         return true;
     }
-                  }
+            }

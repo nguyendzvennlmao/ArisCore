@@ -68,7 +68,13 @@ public class TeleportManager {
                     return;
                 }
                 
-                if (checkCancellationConditions() && !hasSentCancelMessage) {
+                if (currentCountdown > 0) {
+                    Map<String, String> placeholders = new HashMap<>();
+                    placeholders.put("time", String.valueOf(currentCountdown));
+                    plugin.getMessageManager().sendTeleportCountdown(player, module, currentCountdown, placeholders);
+                }
+                
+                if (checkCancellationConditions() && !hasSentCancelMessage && currentCountdown > 0) {
                     hasSentCancelMessage = true;
                     plugin.getMessageManager().sendTeleportCancelled(player, module, "movement");
                     cancelTeleport();
@@ -88,12 +94,7 @@ public class TeleportManager {
                     return;
                 }
                 
-                if (currentCountdown > 0) {
-                    Map<String, String> placeholders = new HashMap<>();
-                    placeholders.put("time", String.valueOf(currentCountdown));
-                    plugin.getMessageManager().sendTeleportCountdown(player, module, currentCountdown, placeholders);
-                    currentCountdown--;
-                }
+                currentCountdown--;
             }, null, 1L, 20L);
             
             activeTeleports.put(player.getUniqueId(), task);
@@ -104,8 +105,9 @@ public class TeleportManager {
             Location currentLocation = player.getLocation();
             
             if (allowedRange > 0) {
-                double distance = startLocation.distance(currentLocation);
-                if (distance > allowedRange) {
+                double dx = Math.abs(startLocation.getX() - currentLocation.getX());
+                double dz = Math.abs(startLocation.getZ() - currentLocation.getZ());
+                if (dx > allowedRange || dz > allowedRange) {
                     return true;
                 }
             }
@@ -129,4 +131,4 @@ public class TeleportManager {
             cancelled = true;
         }
     }
-    }
+            }

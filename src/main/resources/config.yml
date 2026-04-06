@@ -5,6 +5,8 @@ modules:
   spawn: true
   afk: true
   rtp: true
+  shop: true
+  shards: true
 
 settings:
   teleport:

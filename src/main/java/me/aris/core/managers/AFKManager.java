@@ -130,11 +130,9 @@ public class AFKManager {
     private void startTeleportToAFKLocation(Player player) {
         plugin.getTeleportManager().startTeleport(player, afkLocation, "afk",
             () -> {
-                plugin.getMessageManager().sendMessage(player, "teleport-success", "afk");
+                plugin.getMessageManager().sendTeleportSuccess(player, "afk");
             },
-            () -> {
-                plugin.getMessageManager().sendMessage(player, "teleport-cancelled-movement", "afk");
-            }
+            () -> {}
         );
     }
     
@@ -166,4 +164,4 @@ public class AFKManager {
             task.cancel();
         }
     }
-            }
+                    }

@@ -27,6 +27,9 @@ import org.bukkit.ChatColor;
 import org.bukkit.plugin.java.JavaPlugin;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 
 public class ArisCore extends JavaPlugin {
     private static ArisCore instance;
@@ -55,9 +58,7 @@ public class ArisCore extends JavaPlugin {
         
         printLogo();
         
-        saveDefaultConfig();
-        
-        createDataFolders();
+        createAllConfigs();
         
         configManager = new ConfigManager(this);
         messageManager = new MessageManager(this);
@@ -99,7 +100,7 @@ public class ArisCore extends JavaPlugin {
         }
     }
     
-    private void createDataFolders() {
+    private void createAllConfigs() {
         createFolder("");
         createFolder("Location");
         createFolder("Afk");
@@ -111,10 +112,36 @@ public class ArisCore extends JavaPlugin {
         createFolder("Warp");
         createFolder("Rtp");
         
-        createFile("spawn.yml");
-        createFile("homes.yml");
-        createFile("warps.yml");
-        createFile("afk.yml");
+        createConfigFromResource("config.yml", "config.yml");
+        
+        createConfigFromResource("Afk/config.yml", "Afk/config.yml");
+        createConfigFromResource("Afk/message.yml", "Afk/message.yml");
+        
+        createConfigFromResource("Home/config.yml", "Home/config.yml");
+        createConfigFromResource("Home/message.yml", "Home/message.yml");
+        createConfigFromResource("Home/gui/home.yml", "Home/gui/home.yml");
+        createConfigFromResource("Home/gui/confirm.yml", "Home/gui/confirm.yml");
+        
+        createConfigFromResource("Spawn/config.yml", "Spawn/config.yml");
+        createConfigFromResource("Spawn/message.yml", "Spawn/message.yml");
+        
+        createConfigFromResource("Tpa/config.yml", "Tpa/config.yml");
+        createConfigFromResource("Tpa/message.yml", "Tpa/message.yml");
+        createConfigFromResource("Tpa/gui/tpa.yml", "Tpa/gui/tpa.yml");
+        createConfigFromResource("Tpa/gui/tpahere.yml", "Tpa/gui/tpahere.yml");
+        
+        createConfigFromResource("Warp/config.yml", "Warp/config.yml");
+        createConfigFromResource("Warp/message.yml", "Warp/message.yml");
+        createConfigFromResource("Warp/gui.yml", "Warp/gui.yml");
+        
+        createConfigFromResource("Rtp/config.yml", "Rtp/config.yml");
+        createConfigFromResource("Rtp/message.yml", "Rtp/message.yml");
+        createConfigFromResource("Rtp/gui.yml", "Rtp/gui.yml");
+        
+        createEmptyFile("Location/spawn.yml");
+        createEmptyFile("Location/home.yml");
+        createEmptyFile("Location/warp.yml");
+        createEmptyFile("Location/afk.yml");
     }
     
     private void createFolder(String path) {
@@ -124,13 +151,33 @@ public class ArisCore extends JavaPlugin {
         }
     }
     
-    private void createFile(String path) {
+    private void createConfigFromResource(String targetPath, String resourcePath) {
+        File targetFile = new File(getDataFolder(), targetPath);
+        if (!targetFile.exists()) {
+            try {
+                targetFile.getParentFile().mkdirs();
+                InputStream is = getResource(resourcePath);
+                if (is != null) {
+                    Files.copy(is, targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                    getLogger().info("Created config: " + targetPath);
+                } else {
+                    targetFile.createNewFile();
+                    getLogger().warning("Resource not found: " + resourcePath);
+                }
+            } catch (IOException e) {
+                getLogger().warning("Failed to create " + targetPath + ": " + e.getMessage());
+            }
+        }
+    }
+    
+    private void createEmptyFile(String path) {
         File file = new File(getDataFolder(), path);
         if (!file.exists()) {
             try {
+                file.getParentFile().mkdirs();
                 file.createNewFile();
             } catch (IOException e) {
-                getLogger().warning("Failed to create file: " + path);
+                getLogger().warning("Failed to create " + path + ": " + e.getMessage());
             }
         }
     }
@@ -145,7 +192,7 @@ public class ArisCore extends JavaPlugin {
     }
 
     private void registerCommands() {
-        if (configManager.isModuleEnabled("tpa")) {
+        if (configManager != null && configManager.isModuleEnabled("tpa")) {
             getCommand("tpa").setExecutor(new TPACommand(this));
             getCommand("tpahere").setExecutor(new TPAHereCommand(this));
             getCommand("tpaccept").setExecutor(new TPAcceptCommand(this));
@@ -156,44 +203,44 @@ public class ArisCore extends JavaPlugin {
             getCommand("tpauto").setExecutor(new TPAutoCommand(this));
         }
         
-        if (configManager.isModuleEnabled("home")) {
+        if (configManager != null && configManager.isModuleEnabled("home")) {
             getCommand("home").setExecutor(new HomeCommand(this));
             getCommand("sethome").setExecutor(new SetHomeCommand(this));
             getCommand("delhome").setExecutor(new DelHomeCommand(this));
         }
         
-        if (configManager.isModuleEnabled("warp")) {
+        if (configManager != null && configManager.isModuleEnabled("warp")) {
             getCommand("warp").setExecutor(new WarpCommand(this));
             getCommand("setwarp").setExecutor(new SetWarpCommand(this));
             getCommand("delwarp").setExecutor(new DelWarpCommand(this));
         }
         
-        if (configManager.isModuleEnabled("spawn")) {
+        if (configManager != null && configManager.isModuleEnabled("spawn")) {
             getCommand("spawn").setExecutor(new SpawnCommand(this));
             getCommand("setspawn").setExecutor(new SetSpawnCommand(this));
             getCommand("delspawn").setExecutor(new DelSpawnCommand(this));
         }
         
-        if (configManager.isModuleEnabled("afk")) {
+        if (configManager != null && configManager.isModuleEnabled("afk")) {
             getCommand("afk").setExecutor(new AFKCommand(this));
             getCommand("setafk").setExecutor(new SetAFKCommand(this));
             getCommand("delafk").setExecutor(new DelAFKCommand(this));
         }
         
-        if (configManager.isModuleEnabled("rtp")) {
+        if (configManager != null && configManager.isModuleEnabled("rtp")) {
             getCommand("rtp").setExecutor(new RTPCommand(this));
         }
     }
 
     private void registerListeners() {
         getServer().getPluginManager().registerEvents(new TeleportListener(this), this);
-        if (configManager.isModuleEnabled("afk")) {
+        if (configManager != null && configManager.isModuleEnabled("afk")) {
             getServer().getPluginManager().registerEvents(new AFKListener(this), this);
         }
         getServer().getPluginManager().registerEvents(homeGUI, this);
         getServer().getPluginManager().registerEvents(confirmGUI, this);
         getServer().getPluginManager().registerEvents(warpGUI, this);
-        if (configManager.isModuleEnabled("rtp")) {
+        if (configManager != null && configManager.isModuleEnabled("rtp")) {
             getServer().getPluginManager().registerEvents(rtpGUI, this);
         }
     }

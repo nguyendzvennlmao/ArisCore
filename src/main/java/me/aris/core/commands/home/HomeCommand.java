@@ -48,13 +48,11 @@ public class HomeCommand implements CommandExecutor {
         
         plugin.getTeleportManager().startTeleport(player, home.getLocation(), "home",
             () -> {
-                plugin.getMessageManager().sendMessage(player, "teleport-success", "home", "home", homeName);
+                plugin.getMessageManager().sendTeleportSuccess(player, "home");
             },
-            () -> {
-                plugin.getMessageManager().sendMessage(player, "teleport-cancelled-movement", "home");
-            }
+            () -> {}
         );
         
         return true;
     }
-                                                   }
+                             }

@@ -61,15 +61,9 @@ public class TPAcceptCommand implements CommandExecutor {
         
         if (request.isHere()) {
             plugin.getMessageManager().sendMessage(request.getSender(), "teleport-to-you", "tpa", placeholders);
-            plugin.getTeleportManager().startTeleport(request.getSender(), player.getLocation(), "tpa",
-                () -> {},
-                () -> {}
-            );
+            plugin.getTpaTeleport().teleport(request.getSender(), player.getLocation());
         } else {
-            plugin.getTeleportManager().startTeleport(player, request.getSender().getLocation(), "tpa",
-                () -> {},
-                () -> {}
-            );
+            plugin.getTpaTeleport().teleport(player, request.getSender().getLocation());
         }
         
         return true;

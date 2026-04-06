@@ -142,12 +142,14 @@ public class RTPGUI implements Listener {
                 player.closeInventory();
                 
                 final World targetWorld = world;
+                final String finalWorldName = worldName;
+                
                 player.getScheduler().run(plugin, scheduledTask -> {
                     int maxRetries = rtpConfig.getInt("max-retries", 50);
-                    int maxRadius = guiConfig.getInt("worlds." + worldName + ".max-radius", 5000);
-                    int minRadius = guiConfig.getInt("worlds." + worldName + ".min-radius", 100);
-                    int minY = guiConfig.getInt("worlds." + worldName + ".min-y", 63);
-                    int maxY = guiConfig.getInt("worlds." + worldName + ".max-y", 120);
+                    int maxRadius = guiConfig.getInt("worlds." + finalWorldName + ".max-radius", 5000);
+                    int minRadius = guiConfig.getInt("worlds." + finalWorldName + ".min-radius", 100);
+                    int minY = guiConfig.getInt("worlds." + finalWorldName + ".min-y", 63);
+                    int maxY = guiConfig.getInt("worlds." + finalWorldName + ".max-y", 120);
                     
                     Location safeLocation = findSafeLocation(targetWorld, maxRetries, maxRadius, minRadius, minY, maxY);
                     
@@ -185,6 +187,7 @@ public class RTPGUI implements Listener {
             int y = minY + random.nextInt(maxY - minY + 1);
             
             Location loc = new Location(world, x + 0.5, y, z + 0.5);
+            
             if (isSafeLocation(loc)) {
                 return loc;
             }
@@ -200,26 +203,30 @@ public class RTPGUI implements Listener {
         int y = location.getBlockY();
         int z = location.getBlockZ();
         
-        org.bukkit.block.Block feetBlock = world.getBlockAt(x, y, z);
-        org.bukkit.block.Block headBlock = world.getBlockAt(x, y + 1, z);
-        org.bukkit.block.Block groundBlock = world.getBlockAt(x, y - 1, z);
-        
-        if (feetBlock.getType() != Material.AIR && !feetBlock.isPassable()) {
+        try {
+            org.bukkit.block.Block feetBlock = world.getBlockAt(x, y, z);
+            org.bukkit.block.Block headBlock = world.getBlockAt(x, y + 1, z);
+            org.bukkit.block.Block groundBlock = world.getBlockAt(x, y - 1, z);
+            
+            if (feetBlock.getType() != Material.AIR && !feetBlock.isPassable()) {
+                return false;
+            }
+            
+            if (headBlock.getType() != Material.AIR && !headBlock.isPassable()) {
+                return false;
+            }
+            
+            if (!groundBlock.getType().isSolid() && groundBlock.getType() != Material.GRASS_BLOCK && groundBlock.getType() != Material.SAND && groundBlock.getType() != Material.STONE) {
+                return false;
+            }
+            
+            if (groundBlock.getType() == Material.LAVA || groundBlock.getType() == Material.WATER) {
+                return false;
+            }
+            
+            return true;
+        } catch (Exception e) {
             return false;
         }
-        
-        if (headBlock.getType() != Material.AIR && !headBlock.isPassable()) {
-            return false;
-        }
-        
-        if (!groundBlock.getType().isSolid() && groundBlock.getType() != Material.GRASS_BLOCK && groundBlock.getType() != Material.SAND && groundBlock.getType() != Material.STONE) {
-            return false;
-        }
-        
-        if (groundBlock.getType() == Material.LAVA || groundBlock.getType() == Material.WATER) {
-            return false;
-        }
-        
-        return true;
     }
-                }
+    }

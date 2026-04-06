@@ -114,7 +114,7 @@ public class AFKManager {
                 }
             }
             if (afkLocation != null) {
-                startTeleportToAFKLocation(player);
+                plugin.getAfkTeleport().teleport(player, afkLocation);
             }
         } else {
             afkPlayers.remove(player.getUniqueId());
@@ -125,15 +125,6 @@ public class AFKManager {
                 }
             }
         }
-    }
-    
-    private void startTeleportToAFKLocation(Player player) {
-        plugin.getTeleportManager().startTeleport(player, afkLocation, "afk",
-            () -> {
-                plugin.getMessageManager().sendTeleportSuccess(player, "afk");
-            },
-            () -> {}
-        );
     }
     
     private void startAutoAFKTask() {

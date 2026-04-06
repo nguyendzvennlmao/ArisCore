@@ -19,11 +19,11 @@ import me.aris.core.commands.warp.WarpCommand;
 import me.aris.core.gui.ConfirmGUI;
 import me.aris.core.gui.HomeGUI;
 import me.aris.core.gui.RTPGUI;
-import me.aris.core.gui.ShopGUI;
 import me.aris.core.gui.WarpGUI;
 import me.aris.core.listeners.AFKListener;
 import me.aris.core.listeners.TeleportListener;
 import me.aris.core.managers.*;
+import me.aris.core.shop.ShopGUI;
 import me.aris.core.teleport.*;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -299,4 +299,4 @@ public class ArisCore extends JavaPlugin {
     public ConfirmGUI getConfirmGUI() { return confirmGUI; }
     public RTPGUI getRTPGUI() { return rtpGUI; }
     public ShopGUI getShopGUI() { return shopGUI; }
-}
+    }

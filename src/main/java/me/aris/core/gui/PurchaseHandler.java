@@ -1,7 +1,6 @@
-package me.aris.core.gui;
+package me.aris.core.shop;
 
 import me.aris.core.ArisCore;
-import me.aris.core.models.ShopItem;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -55,10 +54,7 @@ public class PurchaseHandler {
                     material = Material.CHEST;
                 }
                 ItemStack stack = new ItemStack(material, item.getAmount());
-                Map<Integer, ItemStack> remaining = player.getInventory().addItem(stack);
-                if (!remaining.isEmpty()) {
-                    player.getWorld().dropItem(player.getLocation(), remaining.get(0));
-                }
+                player.getInventory().addItem(stack);
             }
             
             Map<String, String> placeholders = new HashMap<>();
@@ -70,4 +66,4 @@ public class PurchaseHandler {
         }
         return false;
     }
-                                   }
+        }

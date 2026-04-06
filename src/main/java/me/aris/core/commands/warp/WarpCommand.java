@@ -49,13 +49,11 @@ public class WarpCommand implements CommandExecutor {
         
         plugin.getTeleportManager().startTeleport(player, warp.getLocation(), "warp",
             () -> {
-                plugin.getMessageManager().sendMessage(player, "teleport-success", "warp", "warp", warpName);
+                plugin.getMessageManager().sendTeleportSuccess(player, "warp");
             },
-            () -> {
-                plugin.getMessageManager().sendMessage(player, "teleport-cancelled-movement", "warp");
-            }
+            () -> {}
         );
         
         return true;
     }
-                    }
+            }

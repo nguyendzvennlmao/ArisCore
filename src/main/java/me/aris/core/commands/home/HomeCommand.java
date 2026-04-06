@@ -46,8 +46,8 @@ public class HomeCommand implements CommandExecutor {
             return true;
         }
         
-        plugin.getHomeTeleport().teleport(player, home.getLocation());
+        plugin.getHomeTeleport().teleport(player, home.getLocation(), homeName);
         
         return true;
     }
-                                                   }
+}

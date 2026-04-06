@@ -62,7 +62,7 @@ public class ShardsManager {
         return balances.getOrDefault(player.getUniqueId(), startBalance);
     }
     
-    public void getBalance(Player player, CommandSender sender) {
+    public void getBalanceAndSend(Player player, CommandSender sender) {
         long balance = getBalance(player);
         Map<String, String> placeholders = new HashMap<>();
         placeholders.put("player", player.getName());
@@ -74,7 +74,7 @@ public class ShardsManager {
         }
     }
     
-    public void getBalance(Player player) {
+    public void sendOwnBalance(Player player) {
         long balance = getBalance(player);
         Map<String, String> placeholders = new HashMap<>();
         placeholders.put("balance", formatNumber(balance));
@@ -125,4 +125,4 @@ public class ShardsManager {
         }
         return String.valueOf(number);
     }
-    }
+                         }

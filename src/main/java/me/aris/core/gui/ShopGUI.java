@@ -20,7 +20,7 @@ import java.util.Map;
 
 public class ShopGUI implements Listener {
     private ArisCore plugin;
-    private FileConfiguration mainConfig;
+    private FileConfiguration shopConfig;
     private Map<String, FileConfiguration> categoryConfigs;
     
     public ShopGUI(ArisCore plugin) {
@@ -30,14 +30,14 @@ public class ShopGUI implements Listener {
     }
     
     private void loadConfigs() {
-        File mainFile = new File(plugin.getDataFolder(), "Shop/gui/main.yml");
-        if (mainFile.exists()) {
-            mainConfig = YamlConfiguration.loadConfiguration(mainFile);
+        File configFile = new File(plugin.getDataFolder(), "Shop/config.yml");
+        if (configFile.exists()) {
+            shopConfig = YamlConfiguration.loadConfiguration(configFile);
         } else {
-            mainConfig = new YamlConfiguration();
+            shopConfig = new YamlConfiguration();
         }
         
-        String[] categories = {"end", "nether", "gear", "food"};
+        String[] categories = {"end", "nether", "gear", "food", "shards"};
         for (String category : categories) {
             File file = new File(plugin.getDataFolder(), "Shop/gui/" + category + ".yml");
             if (file.exists()) {
@@ -52,16 +52,16 @@ public class ShopGUI implements Listener {
     
     public void openMainShop(Player player) {
         loadConfigs();
-        String title = mainConfig.getString("title", "&8ѕʜᴏᴘ");
-        int rows = mainConfig.getInt("rows", 3);
+        String title = shopConfig.getString("main-menu.title", "&8ѕʜᴏᴘ");
+        int rows = shopConfig.getInt("main-menu.rows", 3);
         
         Inventory gui = Bukkit.createInventory(null, rows * 9, translateColors(title));
         
-        for (String category : mainConfig.getConfigurationSection("categories").getKeys(false)) {
-            int slot = mainConfig.getInt("categories." + category + ".slot");
-            String materialName = mainConfig.getString("categories." + category + ".material");
-            String displayName = mainConfig.getString("categories." + category + ".displayname");
-            List<String> lore = mainConfig.getStringList("categories." + category + ".lore");
+        for (String category : shopConfig.getConfigurationSection("main-menu.categories").getKeys(false)) {
+            int slot = shopConfig.getInt("main-menu.categories." + category + ".slot");
+            String materialName = shopConfig.getString("main-menu.categories." + category + ".material");
+            String displayName = shopConfig.getString("main-menu.categories." + category + ".displayname");
+            List<String> lore = shopConfig.getStringList("main-menu.categories." + category + ".lore");
             
             Material material;
             try {
@@ -88,7 +88,7 @@ public class ShopGUI implements Listener {
         if (!(event.getWhoClicked() instanceof Player)) return;
         Player player = (Player) event.getWhoClicked();
         String title = event.getView().getTitle();
-        String mainTitle = translateColors(mainConfig.getString("title", "&8ѕʜᴏᴘ"));
+        String mainTitle = translateColors(shopConfig.getString("main-menu.title", "&8ѕʜᴏᴘ"));
         
         if (title.equals(mainTitle)) {
             event.setCancelled(true);
@@ -97,8 +97,8 @@ public class ShopGUI implements Listener {
             
             String displayName = ChatColor.stripColor(clicked.getItemMeta().getDisplayName());
             
-            for (String category : mainConfig.getConfigurationSection("categories").getKeys(false)) {
-                String catName = ChatColor.stripColor(translateColors(mainConfig.getString("categories." + category + ".displayname")));
+            for (String category : shopConfig.getConfigurationSection("main-menu.categories").getKeys(false)) {
+                String catName = ChatColor.stripColor(translateColors(shopConfig.getString("main-menu.categories." + category + ".displayname")));
                 if (displayName.equals(catName)) {
                     openCategoryShop(player, category);
                     return;
@@ -114,12 +114,18 @@ public class ShopGUI implements Listener {
                 ItemStack clicked = event.getCurrentItem();
                 if (clicked == null || !clicked.hasItemMeta()) return;
                 
+                if (clicked.getType() == Material.RED_STAINED_GLASS_PANE) {
+                    openMainShop(player);
+                    return;
+                }
+                
                 for (String itemKey : entry.getValue().getConfigurationSection("items").getKeys(false)) {
                     int slot = entry.getValue().getInt("items." + itemKey + ".slot");
                     if (event.getSlot() == slot) {
                         long price = entry.getValue().getLong("items." + itemKey + ".price");
                         int amount = entry.getValue().getInt("items." + itemKey + ".amount", 1);
                         String materialName = entry.getValue().getString("items." + itemKey + ".material");
+                        String command = entry.getValue().getString("items." + itemKey + ".command", "");
                         
                         if (!plugin.getShardsManager().hasEnough(player, price)) {
                             plugin.getMessageManager().sendMessage(player, "insufficient-funds", "shop");
@@ -134,17 +140,18 @@ public class ShopGUI implements Listener {
                         }
                         
                         if (plugin.getShardsManager().removeShards(player, price)) {
-                            Material material = Material.valueOf(materialName);
-                            ItemStack item = new ItemStack(material, amount);
-                            player.getInventory().addItem(item);
+                            if (!command.isEmpty()) {
+                                String finalCommand = command.replace("%player%", player.getName()).replace("%amount%", String.valueOf(amount));
+                                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), finalCommand);
+                            } else {
+                                Material material = Material.valueOf(materialName);
+                                ItemStack item = new ItemStack(material, amount);
+                                player.getInventory().addItem(item);
+                            }
                             player.closeInventory();
                         }
                         return;
                     }
-                }
-                
-                if (event.getCurrentItem().getType() == Material.RED_STAINED_GLASS_PANE) {
-                    openMainShop(player);
                 }
                 return;
             }
@@ -195,4 +202,4 @@ public class ShopGUI implements Listener {
         
         player.openInventory(gui);
     }
-                  }
+}

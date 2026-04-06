@@ -68,7 +68,9 @@ public class TeleportManager {
                     return;
                 }
                 
-                if (checkCancellationConditions() && !hasSentCancelMessage && currentCountdown > 0) {
+                boolean isCancelled = checkCancellationConditions();
+                
+                if (isCancelled && !hasSentCancelMessage && currentCountdown > 0) {
                     hasSentCancelMessage = true;
                     plugin.getMessageManager().sendTeleportCancelled(player, module, "movement");
                     cancelTeleport();

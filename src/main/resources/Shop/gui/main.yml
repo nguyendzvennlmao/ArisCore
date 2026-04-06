@@ -1,0 +1,27 @@
+title: "&8ѕʜᴏᴘ"
+rows: 3
+categories:
+  end:
+    displayname: "&#0bf592ᴇɴᴅ"
+    material: END_STONE
+    slot: 11
+    lore:
+      - "&fClick to view"
+  nether:
+    displayname: "&#0bf592ɴᴇᴛʜᴇʀ"
+    material: MAGMA_BLOCK
+    slot: 12
+    lore:
+      - "&fClick to view"
+  gear:
+    displayname: "&#0bf592ɢᴇᴀʀ"
+    material: TOTEM_OF_UNDYING
+    slot: 13
+    lore:
+      - "&fClick to view"
+  food:
+    displayname: "&#0bf592ꜰᴏᴏᴅ"
+    material: COOKED_BEEF
+    slot: 14
+    lore:
+      - "&fClick to view"

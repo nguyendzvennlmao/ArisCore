@@ -20,7 +20,7 @@ public class ShardsCommand implements CommandExecutor {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (args.length < 1) {
             if (sender instanceof Player) {
-                plugin.getShardsManager().getBalance((Player) sender);
+                plugin.getShardsManager().sendOwnBalance((Player) sender);
             } else {
                 sender.sendMessage("Usage: /shards <give|take|set|reset|balance> [player] [amount]");
             }
@@ -36,9 +36,9 @@ public class ShardsCommand implements CommandExecutor {
                     plugin.getMessageManager().sendMessage(null, "player-not-found", "shards");
                     return true;
                 }
-                plugin.getShardsManager().getBalance(target, sender);
+                plugin.getShardsManager().getBalanceAndSend(target, sender);
             } else if (sender instanceof Player) {
-                plugin.getShardsManager().getBalance((Player) sender);
+                plugin.getShardsManager().sendOwnBalance((Player) sender);
             }
             return true;
         }
@@ -113,4 +113,4 @@ public class ShardsCommand implements CommandExecutor {
         
         return true;
     }
-            }
+        }

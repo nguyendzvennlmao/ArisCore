@@ -1,0 +1,7 @@
+prefix: "&8[&aDonutShop&8] &r"
+
+message:
+  chat-no-permission: "&cYou don't have permission!"
+  chat-insufficient-funds: "&cYou don't have enough shards!"
+  chat-inventory-full: "&cYour inventory is full! Please make some space to buy this item."
+  chat-reload: "&aConfiguration reloaded!"

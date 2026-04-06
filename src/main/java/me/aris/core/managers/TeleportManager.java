@@ -1,7 +1,6 @@
 package me.aris.core.managers;
 
 import me.aris.core.ArisCore;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import java.util.HashMap;
@@ -29,6 +28,7 @@ public class TeleportManager {
         data.startLocation = player.getLocation().clone();
         data.countdown = plugin.getConfigManager().getTeleportCountdown();
         data.cancelled = false;
+        data.hasSentCancel = false;
         
         activeTeleports.put(player.getUniqueId(), data);
         
@@ -44,9 +44,9 @@ public class TeleportManager {
             double dx = Math.abs(currentData.startLocation.getX() - currentLoc.getX());
             double dz = Math.abs(currentData.startLocation.getZ() - currentLoc.getZ());
             
-            if ((dx > 0.05 || dz > 0.05) && currentData.countdown > 0) {
-                player.sendMessage(ChatColor.RED + "The transfer was cancelled because you have already moved.");
-                player.sendActionBar(ChatColor.RED + "Transfer cancelled - you moved");
+            if ((dx > 0.05 || dz > 0.05) && currentData.countdown > 0 && !currentData.hasSentCancel) {
+                currentData.hasSentCancel = true;
+                plugin.getMessageManager().sendTeleportCancelled(player, module, "movement");
                 
                 currentData.cancelled = true;
                 if (currentData.onCancel != null) {
@@ -61,8 +61,7 @@ public class TeleportManager {
                 Location finalLoc = currentData.targetLocation.clone();
                 player.teleportAsync(finalLoc).thenAccept(success -> {
                     if (success) {
-                        player.sendMessage(ChatColor.GREEN + "Teleported successfully!");
-                        player.sendActionBar(ChatColor.GREEN + "Teleported!");
+                        plugin.getMessageManager().sendTeleportSuccess(player, module);
                         if (currentData.onComplete != null) {
                             currentData.onComplete.run();
                         }
@@ -73,8 +72,7 @@ public class TeleportManager {
                 return;
             }
             
-            player.sendMessage(ChatColor.YELLOW + "Teleporting in " + currentData.countdown + " seconds...");
-            player.sendActionBar(ChatColor.YELLOW + "Teleporting in " + currentData.countdown + "s");
+            plugin.getMessageManager().sendTeleportCountdown(player, module, currentData.countdown);
             
             currentData.countdown--;
             
@@ -101,6 +99,7 @@ public class TeleportManager {
         Location startLocation;
         int countdown;
         boolean cancelled;
+        boolean hasSentCancel;
         io.papermc.paper.threadedregions.scheduler.ScheduledTask task;
     }
-                                 }
+                                                         }

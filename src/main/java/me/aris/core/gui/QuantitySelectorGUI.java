@@ -1,17 +1,14 @@
-package me.aris.core.gui;
+package me.aris.core.shop;
 
 import me.aris.core.ArisCore;
-import me.aris.core.models.ShopItem;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import java.io.File;
 import java.util.List;
 
 public class QuantitySelectorGUI {
@@ -19,15 +16,10 @@ public class QuantitySelectorGUI {
     private FileConfiguration shopConfig;
     private PurchaseHandler purchaseHandler;
     
-    public QuantitySelectorGUI(ArisCore plugin, PurchaseHandler purchaseHandler) {
+    public QuantitySelectorGUI(ArisCore plugin, PurchaseHandler purchaseHandler, FileConfiguration shopConfig) {
         this.plugin = plugin;
         this.purchaseHandler = purchaseHandler;
-        File configFile = new File(plugin.getDataFolder(), "Shop/config.yml");
-        if (configFile.exists()) {
-            shopConfig = YamlConfiguration.loadConfiguration(configFile);
-        } else {
-            shopConfig = new YamlConfiguration();
-        }
+        this.shopConfig = shopConfig;
     }
     
     private String translateColors(String message) {
@@ -40,6 +32,15 @@ public class QuantitySelectorGUI {
         
         Inventory gui = Bukkit.createInventory(null, rows * 9, translateColors(title));
         
+        purchaseHandler.setPendingPurchase(player, item);
+        
+        addControlButtons(gui);
+        updatePreviewItem(gui, item);
+        
+        player.openInventory(gui);
+    }
+    
+    private void addControlButtons(Inventory gui) {
         int remove64Slot = shopConfig.getInt("gui.quantity-selector.remove64.slot", 9);
         String remove64Name = shopConfig.getString("gui.quantity-selector.remove64.name", "&cĐặt 1");
         String remove64Material = shopConfig.getString("gui.quantity-selector.remove64.material", "RED_STAINED_GLASS_PANE");
@@ -72,9 +73,6 @@ public class QuantitySelectorGUI {
         String confirmName = shopConfig.getString("gui.quantity-selector.confirm.name", "&#02de4fᴄᴏɴғɪʀᴍ");
         String confirmMaterial = shopConfig.getString("gui.quantity-selector.confirm.material", "LIME_STAINED_GLASS_PANE");
         
-        int previewSlot = shopConfig.getInt("gui.quantity-selector.item-preview.slot", 13);
-        List<String> previewLore = shopConfig.getStringList("gui.quantity-selector.item-preview.lore");
-        
         addButton(gui, remove64Slot, remove64Material, remove64Name);
         addButton(gui, remove10Slot, remove10Material, remove10Name);
         addButton(gui, remove1Slot, remove1Material, remove1Name);
@@ -83,11 +81,6 @@ public class QuantitySelectorGUI {
         addButton(gui, set64Slot, set64Material, set64Name);
         addButton(gui, cancelSlot, cancelMaterial, cancelName);
         addButton(gui, confirmSlot, confirmMaterial, confirmName);
-        
-        updatePreviewItem(gui, previewSlot, item, previewLore);
-        
-        purchaseHandler.setPendingPurchase(player, item);
-        player.openInventory(gui);
     }
     
     private void addButton(Inventory gui, int slot, String materialName, String displayName) {
@@ -105,7 +98,10 @@ public class QuantitySelectorGUI {
         gui.setItem(slot, button);
     }
     
-    private void updatePreviewItem(Inventory gui, int slot, ShopItem item, List<String> lore) {
+    private void updatePreviewItem(Inventory gui, ShopItem item) {
+        int previewSlot = shopConfig.getInt("gui.quantity-selector.item-preview.slot", 13);
+        List<String> previewLore = shopConfig.getStringList("gui.quantity-selector.item-preview.lore");
+        
         Material material;
         try {
             material = Material.valueOf(item.getMaterialName());
@@ -118,7 +114,7 @@ public class QuantitySelectorGUI {
         meta.setDisplayName(translateColors(item.getDisplayName()));
         
         long totalPrice = item.getPrice() * item.getAmount();
-        List<String> coloredLore = lore.stream()
+        List<String> coloredLore = previewLore.stream()
             .map(line -> line.replace("%price%", String.valueOf(item.getPrice()))
                            .replace("%amount%", String.valueOf(item.getAmount()))
                            .replace("%total_price%", String.valueOf(totalPrice)))
@@ -126,10 +122,10 @@ public class QuantitySelectorGUI {
             .toList();
         meta.setLore(coloredLore);
         preview.setItemMeta(meta);
-        gui.setItem(slot, preview);
+        gui.setItem(previewSlot, preview);
     }
     
     public void refresh(Player player, ShopItem item) {
         open(player, item);
     }
-            }
+    }

@@ -21,6 +21,7 @@ import me.aris.core.gui.HomeGUI;
 import me.aris.core.gui.RTPGUI;
 import me.aris.core.gui.ShopGUI;
 import me.aris.core.gui.WarpGUI;
+import me.aris.core.hooks.PlaceholderHook;
 import me.aris.core.listeners.AFKListener;
 import me.aris.core.listeners.TeleportListener;
 import me.aris.core.managers.*;
@@ -56,6 +57,7 @@ public class ArisCore extends JavaPlugin {
     private ConfirmGUI confirmGUI;
     private RTPGUI rtpGUI;
     private ShopGUI shopGUI;
+    private PlaceholderHook placeholderHook;
 
     @Override
     public void onEnable() {
@@ -85,6 +87,12 @@ public class ArisCore extends JavaPlugin {
         confirmGUI = new ConfirmGUI(this);
         rtpGUI = new RTPGUI(this);
         shopGUI = new ShopGUI(this);
+        
+        if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
+            placeholderHook = new PlaceholderHook(this);
+            placeholderHook.register();
+            getLogger().info("PlaceholderAPI hook registered!");
+        }
         
         registerCommands();
         registerListeners();

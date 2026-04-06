@@ -32,13 +32,8 @@ public class SpawnCommand implements CommandExecutor {
             return true;
         }
         
-        plugin.getTeleportManager().startTeleport(player, plugin.getSpawnManager().getSpawn(), "spawn",
-            () -> {
-                plugin.getMessageManager().sendTeleportSuccess(player, "spawn");
-            },
-            () -> {}
-        );
+        plugin.getSpawnTeleport().teleport(player, plugin.getSpawnManager().getSpawn());
         
         return true;
     }
-}
+            }

@@ -1,4 +1,4 @@
-package me.aris.core.models;
+package me.aris.core.shop;
 
 public class ShopItem {
     private String category;
@@ -27,4 +27,4 @@ public class ShopItem {
     public String getCommand() { return command; }
     public int getAmount() { return amount; }
     public void setAmount(int amount) { this.amount = amount; }
-  }
+}

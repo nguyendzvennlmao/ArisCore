@@ -93,14 +93,17 @@ public class ShardsManager {
         if (newBalance > maxBalance) newBalance = maxBalance;
         balances.put(player.getUniqueId(), newBalance);
         saveData();
+        plugin.getLogger().info("Added " + amount + " shards to " + player.getName() + ". New balance: " + newBalance);
         return true;
     }
     
     public boolean removeShards(Player player, long amount) {
         long current = getBalance(player);
         if (current < amount) return false;
-        balances.put(player.getUniqueId(), current - amount);
+        long newBalance = current - amount;
+        balances.put(player.getUniqueId(), newBalance);
         saveData();
+        plugin.getLogger().info("Removed " + amount + " shards from " + player.getName() + ". New balance: " + newBalance);
         return true;
     }
     
@@ -125,4 +128,4 @@ public class ShardsManager {
         }
         return String.valueOf(number);
     }
-                         }
+            }

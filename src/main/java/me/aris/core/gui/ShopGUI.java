@@ -1,12 +1,10 @@
-package me.aris.core.gui;
+package me.aris.core.shop;
 
 import me.aris.core.ArisCore;
-import me.aris.core.models.ShopItem;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -14,41 +12,20 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import java.io.File;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class ShopGUI implements Listener {
     private ArisCore plugin;
-    private FileConfiguration shopConfig;
-    private Map<String, FileConfiguration> categoryConfigs;
-    private QuantitySelectorGUI quantitySelector;
+    private CategoryManager categoryManager;
     private PurchaseHandler purchaseHandler;
+    private QuantitySelectorGUI quantitySelector;
     
     public ShopGUI(ArisCore plugin) {
         this.plugin = plugin;
-        this.categoryConfigs = new HashMap<>();
+        this.categoryManager = new CategoryManager(plugin);
         this.purchaseHandler = new PurchaseHandler(plugin);
-        this.quantitySelector = new QuantitySelectorGUI(plugin, purchaseHandler);
-        loadConfigs();
-    }
-    
-    private void loadConfigs() {
-        File configFile = new File(plugin.getDataFolder(), "Shop/config.yml");
-        if (configFile.exists()) {
-            shopConfig = YamlConfiguration.loadConfiguration(configFile);
-        } else {
-            shopConfig = new YamlConfiguration();
-        }
-        
-        String[] categories = {"end", "nether", "gear", "food", "shards"};
-        for (String category : categories) {
-            File file = new File(plugin.getDataFolder(), "Shop/gui/" + category + ".yml");
-            if (file.exists()) {
-                categoryConfigs.put(category, YamlConfiguration.loadConfiguration(file));
-            }
-        }
+        this.quantitySelector = new QuantitySelectorGUI(plugin, purchaseHandler, categoryManager.getShopConfig());
     }
     
     private String translateColors(String message) {
@@ -56,7 +33,7 @@ public class ShopGUI implements Listener {
     }
     
     public void openMainShop(Player player) {
-        loadConfigs();
+        FileConfiguration shopConfig = categoryManager.getShopConfig();
         String title = shopConfig.getString("main-menu.title", "&8ѕʜᴏᴘ");
         int rows = shopConfig.getInt("main-menu.rows", 3);
         
@@ -93,6 +70,7 @@ public class ShopGUI implements Listener {
         if (!(event.getWhoClicked() instanceof Player)) return;
         Player player = (Player) event.getWhoClicked();
         String title = event.getView().getTitle();
+        FileConfiguration shopConfig = categoryManager.getShopConfig();
         String mainTitle = translateColors(shopConfig.getString("main-menu.title", "&8ѕʜᴏᴘ"));
         String quantityTitle = translateColors(shopConfig.getString("gui.quantity-selector.title", "&8ᴄᴏɴғɪʀᴍ ᴘᴜʀᴄʜᴀsᴇ"));
         
@@ -158,17 +136,15 @@ public class ShopGUI implements Listener {
                 player.closeInventory();
                 openMainShop(player);
             } else if (displayName.equals(confirmName)) {
-                player.closeInventory();
-                boolean success = purchaseHandler.processPurchase(player, pending);
+                purchaseHandler.processPurchase(player, pending);
                 purchaseHandler.removePendingPurchase(player);
-                if (success) {
-                    openMainShop(player);
-                }
+                player.closeInventory();
+                openMainShop(player);
             }
             return;
         }
         
-        for (Map.Entry<String, FileConfiguration> entry : categoryConfigs.entrySet()) {
+        for (Map.Entry<String, FileConfiguration> entry : categoryManager.getAllCategoryConfigs().entrySet()) {
             String categoryTitle = translateColors(entry.getValue().getString("title", ""));
             if (title.equals(categoryTitle)) {
                 event.setCancelled(true);
@@ -200,7 +176,7 @@ public class ShopGUI implements Listener {
     }
     
     private void openCategoryShop(Player player, String category) {
-        FileConfiguration catConfig = categoryConfigs.get(category);
+        FileConfiguration catConfig = categoryManager.getCategoryConfig(category);
         if (catConfig == null) return;
         
         String title = catConfig.getString("title", "&8Shop");
@@ -243,4 +219,4 @@ public class ShopGUI implements Listener {
         
         player.openInventory(gui);
     }
-                                 }
+                                                       }

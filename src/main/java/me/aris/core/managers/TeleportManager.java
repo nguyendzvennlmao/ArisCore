@@ -1,8 +1,12 @@
 package me.aris.core.managers;
 
 import me.aris.core.ArisCore;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -68,11 +72,11 @@ public class TeleportManager {
                     return;
                 }
                 
-                boolean isCancelled = checkCancellationConditions();
+                boolean moved = checkIfMoved();
                 
-                if (isCancelled && !hasSentCancelMessage && currentCountdown > 0) {
+                if (moved && !hasSentCancelMessage && currentCountdown > 0) {
                     hasSentCancelMessage = true;
-                    plugin.getMessageManager().sendTeleportCancelled(player, module, "movement");
+                    sendCancelMessage();
                     cancelTeleport();
                     scheduledTask.cancel();
                     activeTeleports.remove(player.getUniqueId());
@@ -101,18 +105,46 @@ public class TeleportManager {
             activeTeleports.put(player.getUniqueId(), task);
         }
         
-        private boolean checkCancellationConditions() {
-            double allowedRange = plugin.getConfigManager().getAllowedWalkRange();
+        private boolean checkIfMoved() {
             Location currentLocation = player.getLocation();
-            
-            if (allowedRange > 0) {
-                double dx = Math.abs(startLocation.getX() - currentLocation.getX());
-                double dz = Math.abs(startLocation.getZ() - currentLocation.getZ());
-                if (dx > allowedRange || dz > allowedRange) {
-                    return true;
+            double dx = Math.abs(startLocation.getX() - currentLocation.getX());
+            double dz = Math.abs(startLocation.getZ() - currentLocation.getZ());
+            return dx > 0.05 || dz > 0.05;
+        }
+        
+        private void sendCancelMessage() {
+            File file = new File(plugin.getDataFolder(), module + "/message.yml");
+            if (file.exists()) {
+                try {
+                    FileConfiguration msgConfig = YamlConfiguration.loadConfiguration(file);
+                    String prefix = msgConfig.getString("prefix", "");
+                    String chatMessage = msgConfig.getString("message.chat-teleport-cancelled-movement", "");
+                    String actionBarMessage = msgConfig.getString("message.actionbar-teleport-cancelled-movement", "");
+                    
+                    File configFile = new File(plugin.getDataFolder(), module + "/config.yml");
+                    boolean chatEnabled = true;
+                    boolean actionBarEnabled = true;
+                    
+                    if (configFile.exists()) {
+                        FileConfiguration moduleConfig = YamlConfiguration.loadConfiguration(configFile);
+                        chatEnabled = moduleConfig.getBoolean("messages.chat", true);
+                        actionBarEnabled = moduleConfig.getBoolean("messages.action-bar", true);
+                    }
+                    
+                    if (chatEnabled && !chatMessage.isEmpty()) {
+                        player.sendMessage(ChatColor.translateAlternateColorCodes('&', prefix + chatMessage));
+                    }
+                    
+                    if (actionBarEnabled && !actionBarMessage.isEmpty()) {
+                        player.sendActionBar(ChatColor.translateAlternateColorCodes('&', actionBarMessage));
+                    }
+                } catch (Exception e) {
+                    plugin.getLogger().warning("Failed to send cancel message: " + e.getMessage());
+                    player.sendMessage(ChatColor.RED + "Teleport cancelled - you moved!");
                 }
+            } else {
+                player.sendMessage(ChatColor.RED + "Teleport cancelled - you moved!");
             }
-            return false;
         }
         
         private void executeTeleport() {

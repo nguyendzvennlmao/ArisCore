@@ -7,6 +7,8 @@ import me.aris.core.commands.home.DelHomeCommand;
 import me.aris.core.commands.home.HomeCommand;
 import me.aris.core.commands.home.SetHomeCommand;
 import me.aris.core.commands.rtp.RTPCommand;
+import me.aris.core.commands.shards.ShardsCommand;
+import me.aris.core.commands.shop.ShopCommand;
 import me.aris.core.commands.spawn.DelSpawnCommand;
 import me.aris.core.commands.spawn.SetSpawnCommand;
 import me.aris.core.commands.spawn.SpawnCommand;
@@ -17,6 +19,7 @@ import me.aris.core.commands.warp.WarpCommand;
 import me.aris.core.gui.ConfirmGUI;
 import me.aris.core.gui.HomeGUI;
 import me.aris.core.gui.RTPGUI;
+import me.aris.core.gui.ShopGUI;
 import me.aris.core.gui.WarpGUI;
 import me.aris.core.listeners.AFKListener;
 import me.aris.core.listeners.TeleportListener;
@@ -40,6 +43,7 @@ public class ArisCore extends JavaPlugin {
     private SpawnManager spawnManager;
     private AFKManager afkManager;
     private TPAManager tpaManager;
+    private ShardsManager shardsManager;
     private TeleportManager teleportManager;
     private HomeTeleport homeTeleport;
     private SpawnTeleport spawnTeleport;
@@ -51,6 +55,7 @@ public class ArisCore extends JavaPlugin {
     private WarpGUI warpGUI;
     private ConfirmGUI confirmGUI;
     private RTPGUI rtpGUI;
+    private ShopGUI shopGUI;
 
     @Override
     public void onEnable() {
@@ -67,6 +72,7 @@ public class ArisCore extends JavaPlugin {
         spawnManager = new SpawnManager(this);
         afkManager = new AFKManager(this);
         tpaManager = new TPAManager(this);
+        shardsManager = new ShardsManager(this);
         teleportManager = new TeleportManager(this);
         homeTeleport = new HomeTeleport(this, teleportManager);
         spawnTeleport = new SpawnTeleport(this, teleportManager);
@@ -78,6 +84,7 @@ public class ArisCore extends JavaPlugin {
         warpGUI = new WarpGUI(this);
         confirmGUI = new ConfirmGUI(this);
         rtpGUI = new RTPGUI(this);
+        shopGUI = new ShopGUI(this);
         
         registerCommands();
         registerListeners();
@@ -111,6 +118,9 @@ public class ArisCore extends JavaPlugin {
         createFolder("Tpa/gui");
         createFolder("Warp");
         createFolder("Rtp");
+        createFolder("Shop");
+        createFolder("Shop/gui");
+        createFolder("Shards");
         
         createConfigFromResource("config.yml", "config.yml");
         
@@ -137,6 +147,17 @@ public class ArisCore extends JavaPlugin {
         createConfigFromResource("Rtp/config.yml", "Rtp/config.yml");
         createConfigFromResource("Rtp/message.yml", "Rtp/message.yml");
         createConfigFromResource("Rtp/gui.yml", "Rtp/gui.yml");
+        
+        createConfigFromResource("Shop/config.yml", "Shop/config.yml");
+        createConfigFromResource("Shop/message.yml", "Shop/message.yml");
+        createConfigFromResource("Shop/gui/main.yml", "Shop/gui/main.yml");
+        createConfigFromResource("Shop/gui/end.yml", "Shop/gui/end.yml");
+        createConfigFromResource("Shop/gui/nether.yml", "Shop/gui/nether.yml");
+        createConfigFromResource("Shop/gui/gear.yml", "Shop/gui/gear.yml");
+        createConfigFromResource("Shop/gui/food.yml", "Shop/gui/food.yml");
+        
+        createConfigFromResource("Shards/config.yml", "Shards/config.yml");
+        createConfigFromResource("Shards/message.yml", "Shards/message.yml");
         
         createEmptyFile("Location/spawn.yml");
         createEmptyFile("Location/home.yml");
@@ -188,6 +209,7 @@ public class ArisCore extends JavaPlugin {
         if (warpManager != null) warpManager.saveWarps();
         if (tpaManager != null) tpaManager.shutdown();
         if (afkManager != null) afkManager.shutdown();
+        if (shardsManager != null) shardsManager.saveData();
         getLogger().info("ArisCore has been disabled!");
     }
 
@@ -230,6 +252,14 @@ public class ArisCore extends JavaPlugin {
         if (configManager != null && configManager.isModuleEnabled("rtp")) {
             getCommand("rtp").setExecutor(new RTPCommand(this));
         }
+        
+        if (configManager != null && configManager.isModuleEnabled("shop")) {
+            getCommand("shop").setExecutor(new ShopCommand(this));
+        }
+        
+        if (configManager != null && configManager.isModuleEnabled("shards")) {
+            getCommand("shards").setExecutor(new ShardsCommand(this));
+        }
     }
 
     private void registerListeners() {
@@ -243,6 +273,9 @@ public class ArisCore extends JavaPlugin {
         if (configManager != null && configManager.isModuleEnabled("rtp")) {
             getServer().getPluginManager().registerEvents(rtpGUI, this);
         }
+        if (configManager != null && configManager.isModuleEnabled("shop")) {
+            getServer().getPluginManager().registerEvents(shopGUI, this);
+        }
     }
 
     public static ArisCore getInstance() { return instance; }
@@ -253,6 +286,7 @@ public class ArisCore extends JavaPlugin {
     public SpawnManager getSpawnManager() { return spawnManager; }
     public AFKManager getAFKManager() { return afkManager; }
     public TPAManager getTPAManager() { return tpaManager; }
+    public ShardsManager getShardsManager() { return shardsManager; }
     public TeleportManager getTeleportManager() { return teleportManager; }
     public HomeTeleport getHomeTeleport() { return homeTeleport; }
     public SpawnTeleport getSpawnTeleport() { return spawnTeleport; }
@@ -264,4 +298,5 @@ public class ArisCore extends JavaPlugin {
     public WarpGUI getWarpGUI() { return warpGUI; }
     public ConfirmGUI getConfirmGUI() { return confirmGUI; }
     public RTPGUI getRTPGUI() { return rtpGUI; }
+    public ShopGUI getShopGUI() { return shopGUI; }
     }

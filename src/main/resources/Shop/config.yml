@@ -49,31 +49,45 @@ gui:
   quantity-selector:
     title: "&8ᴄᴏɴғɪʀᴍ ᴘᴜʀᴄʜᴀsᴇ"
     rows: 3
-    confirm-button:
+    cancel:
+      name: "&#e00202ᴄᴀɴᴄᴇʟ"
+      slot: 21
+      material: RED_STAINED_GLASS_PANE
+    confirm:
+      name: "&#02de4fᴄᴏɴғɪʀᴍ"
+      slot: 23
+      material: LIME_STAINED_GLASS_PANE
+    add1:
+      name: "&a+1"
       slot: 15
       material: LIME_STAINED_GLASS_PANE
-      displayname: "&aᴄᴏɴғɪʀᴍ"
-      lore:
-        - "&fTotal Price: &#0bf52b%total_price%"
-        - "&fAmount: &e%amount%x"
-        - ""
-        - "&7Click to purchase"
-    cancel-button:
+    add10:
+      name: "&a+10"
+      slot: 16
+      material: LIME_STAINED_GLASS_PANE
+    set64:
+      name: "&aĐặt 64"
+      slot: 17
+      material: LIME_STAINED_GLASS_PANE
+    remove1:
+      name: "&c-1"
       slot: 11
       material: RED_STAINED_GLASS_PANE
-      displayname: "&cᴄᴀɴᴄᴇʟ"
-      lore:
-        - "&fClick to cancel"
+    remove10:
+      name: "&c-10"
+      slot: 10
+      material: RED_STAINED_GLASS_PANE
+    remove64:
+      name: "&cĐặt 1"
+      slot: 9
+      material: RED_STAINED_GLASS_PANE
     item-preview:
       slot: 13
       lore:
-        - "&fPrice per item: &#0bf52b%price%"
-        - "&fCurrent Amount: &e%amount%x"
+        - "&fGiá mỗi món: &#0bf52b%price%"
+        - "&fSố lượng: &e%amount%x"
         - ""
-        - "&7Left-Click: &a+1"
-        - "&7Right-Click: &c-1"
-        - "&7Shift + Left-Click: &a+10"
-        - "&7Shift + Right-Click: &c-10"
+        - "&fTổng cộng: &#0bf52b%total_price%"
   back-button:
     material: RED_STAINED_GLASS_PANE
     displayname: "&#e00202ʙᴀᴄᴋ"

@@ -67,7 +67,11 @@ public class ShardsManager {
         Map<String, String> placeholders = new HashMap<>();
         placeholders.put("player", player.getName());
         placeholders.put("balance", formatNumber(balance));
-        plugin.getMessageManager().sendMessage(sender, "balance", "shards", placeholders);
+        if (sender instanceof Player) {
+            plugin.getMessageManager().sendMessage((Player) sender, "balance", "shards", placeholders);
+        } else {
+            sender.sendMessage("§e" + player.getName() + " §7has §6" + formatNumber(balance) + " Shards§7.");
+        }
     }
     
     public void getBalance(Player player) {
@@ -121,4 +125,4 @@ public class ShardsManager {
         }
         return String.valueOf(number);
     }
-          }
+    }

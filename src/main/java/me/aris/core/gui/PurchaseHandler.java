@@ -32,8 +32,12 @@ public class PurchaseHandler {
     public boolean processPurchase(Player player, ShopItem item) {
         long totalPrice = item.getPrice() * item.getAmount();
         
+        plugin.getLogger().info("Processing purchase: " + player.getName() + " - " + item.getDisplayName() + " x" + item.getAmount() + " for " + totalPrice + " shards");
+        plugin.getLogger().info("Player balance: " + plugin.getShardsManager().getBalance(player));
+        
         if (!plugin.getShardsManager().hasEnough(player, totalPrice)) {
             plugin.getMessageManager().sendMessage(player, "insufficient-funds", "shop");
+            plugin.getLogger().warning("Insufficient funds: need " + totalPrice + " but has " + plugin.getShardsManager().getBalance(player));
             return false;
         }
         
@@ -42,10 +46,14 @@ public class PurchaseHandler {
             return false;
         }
         
-        if (plugin.getShardsManager().removeShards(player, totalPrice)) {
+        boolean shardsRemoved = plugin.getShardsManager().removeShards(player, totalPrice);
+        plugin.getLogger().info("Shards removed: " + shardsRemoved + ", new balance: " + plugin.getShardsManager().getBalance(player));
+        
+        if (shardsRemoved) {
             if (!item.getCommand().isEmpty()) {
                 String finalCommand = item.getCommand().replace("%player%", player.getName()).replace("%amount%", String.valueOf(item.getAmount()));
                 Bukkit.dispatchCommand(Bukkit.getConsoleSender(), finalCommand);
+                plugin.getLogger().info("Executed command: " + finalCommand);
             } else {
                 Material material;
                 try {
@@ -55,6 +63,7 @@ public class PurchaseHandler {
                 }
                 ItemStack stack = new ItemStack(material, item.getAmount());
                 player.getInventory().addItem(stack);
+                plugin.getLogger().info("Added item: " + item.getMaterialName() + " x" + item.getAmount());
             }
             
             Map<String, String> placeholders = new HashMap<>();
@@ -66,4 +75,4 @@ public class PurchaseHandler {
         }
         return false;
     }
-        }
+            }

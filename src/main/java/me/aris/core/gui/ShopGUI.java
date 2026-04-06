@@ -86,28 +86,27 @@ public class ShopGUI implements Listener {
     }
     
     private void openQuantitySelector(Player player, String category, String itemKey, long price, String materialName, String displayName, String command, int defaultAmount) {
-        FileConfiguration quantityConfig = shopConfig.getConfigurationSection("gui.quantity-selector");
-        if (quantityConfig == null) return;
+        FileConfiguration quantityConfig = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "Shop/config.yml"));
         
-        String title = quantityConfig.getString("title", "&8ᴄᴏɴғɪʀᴍ ᴘᴜʀᴄʜᴀsᴇ");
-        int rows = quantityConfig.getInt("rows", 3);
+        String title = quantityConfig.getString("gui.quantity-selector.title", "&8ᴄᴏɴғɪʀᴍ ᴘᴜʀᴄʜᴀsᴇ");
+        int rows = quantityConfig.getInt("gui.quantity-selector.rows", 3);
         
         Inventory gui = Bukkit.createInventory(null, rows * 9, translateColors(title));
         
         pendingPurchases.put(player, new PendingPurchase(category, itemKey, price, materialName, displayName, command, defaultAmount));
         
-        int confirmSlot = quantityConfig.getInt("confirm-button.slot", 15);
-        String confirmMaterial = quantityConfig.getString("confirm-button.material", "LIME_STAINED_GLASS_PANE");
-        String confirmName = quantityConfig.getString("confirm-button.displayname", "&aᴄᴏɴғɪʀᴍ");
-        List<String> confirmLore = quantityConfig.getStringList("confirm-button.lore");
+        int confirmSlot = quantityConfig.getInt("gui.quantity-selector.confirm-button.slot", 15);
+        String confirmMaterial = quantityConfig.getString("gui.quantity-selector.confirm-button.material", "LIME_STAINED_GLASS_PANE");
+        String confirmName = quantityConfig.getString("gui.quantity-selector.confirm-button.displayname", "&aᴄᴏɴғɪʀᴍ");
+        List<String> confirmLore = quantityConfig.getStringList("gui.quantity-selector.confirm-button.lore");
         
-        int cancelSlot = quantityConfig.getInt("cancel-button.slot", 11);
-        String cancelMaterial = quantityConfig.getString("cancel-button.material", "RED_STAINED_GLASS_PANE");
-        String cancelName = quantityConfig.getString("cancel-button.displayname", "&cᴄᴀɴᴄᴇʟ");
-        List<String> cancelLore = quantityConfig.getStringList("cancel-button.lore");
+        int cancelSlot = quantityConfig.getInt("gui.quantity-selector.cancel-button.slot", 11);
+        String cancelMaterial = quantityConfig.getString("gui.quantity-selector.cancel-button.material", "RED_STAINED_GLASS_PANE");
+        String cancelName = quantityConfig.getString("gui.quantity-selector.cancel-button.displayname", "&cᴄᴀɴᴄᴇʟ");
+        List<String> cancelLore = quantityConfig.getStringList("gui.quantity-selector.cancel-button.lore");
         
-        int previewSlot = quantityConfig.getInt("item-preview.slot", 13);
-        List<String> previewLore = quantityConfig.getStringList("item-preview.lore");
+        int previewSlot = quantityConfig.getInt("gui.quantity-selector.item-preview.slot", 13);
+        List<String> previewLore = quantityConfig.getStringList("gui.quantity-selector.item-preview.lore");
         
         Material confirmMat;
         try {
@@ -136,7 +135,7 @@ public class ShopGUI implements Listener {
         ItemStack cancelButton = new ItemStack(cancelMat);
         ItemMeta cancelMeta = cancelButton.getItemMeta();
         cancelMeta.setDisplayName(translateColors(cancelName));
-        if (cancelLore != null) {
+        if (cancelLore != null && !cancelLore.isEmpty()) {
             cancelMeta.setLore(cancelLore.stream().map(this::translateColors).toList());
         }
         cancelButton.setItemMeta(cancelMeta);
@@ -202,6 +201,7 @@ public class ShopGUI implements Listener {
                     processPurchase(player, pending);
                 }
                 player.closeInventory();
+                openMainShop(player);
             } else if (displayName.equals(cancelName)) {
                 pendingPurchases.remove(player);
                 player.closeInventory();
@@ -334,4 +334,4 @@ public class ShopGUI implements Listener {
             this.amount = amount;
         }
     }
-                                    }
+                }

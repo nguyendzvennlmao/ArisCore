@@ -28,5 +28,5 @@ message:
   chat-teleport-cancelled-movement: "&cThe transfer was cancelled because you have already moved."
   actionbar-teleport-cancelled-movement: "&cTransfer cancelled - you moved"
   
-  chat-teleport-success: "&aTeleported to home &e%home%&a!"
+  chat-teleport-success: "&aTeleported to home &e%home%&a successfully!"
   actionbar-teleport-success: "&aTeleported to home %home%"

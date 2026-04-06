@@ -6,10 +6,12 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import java.io.File;
 import java.util.List;
 
 public class QuantitySelectorGUI {
@@ -20,11 +22,11 @@ public class QuantitySelectorGUI {
     public QuantitySelectorGUI(ArisCore plugin, PurchaseHandler purchaseHandler) {
         this.plugin = plugin;
         this.purchaseHandler = purchaseHandler;
-        File configFile = new java.io.File(plugin.getDataFolder(), "Shop/config.yml");
+        File configFile = new File(plugin.getDataFolder(), "Shop/config.yml");
         if (configFile.exists()) {
-            shopConfig = org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(configFile);
+            shopConfig = YamlConfiguration.loadConfiguration(configFile);
         } else {
-            shopConfig = new org.bukkit.configuration.file.YamlConfiguration();
+            shopConfig = new YamlConfiguration();
         }
     }
     
@@ -130,4 +132,4 @@ public class QuantitySelectorGUI {
     public void refresh(Player player, ShopItem item) {
         open(player, item);
     }
-          }
+            }

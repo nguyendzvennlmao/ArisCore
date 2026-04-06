@@ -137,9 +137,7 @@ public class ShopGUI implements Listener {
                 openMainShop(player);
             } else if (displayName.equals(confirmName)) {
                 purchaseHandler.processPurchase(player, pending);
-                purchaseHandler.removePendingPurchase(player);
-                player.closeInventory();
-                openMainShop(player);
+                quantitySelector.refresh(player, pending);
             }
             return;
         }
@@ -219,4 +217,4 @@ public class ShopGUI implements Listener {
         
         player.openInventory(gui);
     }
-                                                       }
+            }

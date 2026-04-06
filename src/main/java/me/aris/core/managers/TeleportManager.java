@@ -68,12 +68,6 @@ public class TeleportManager {
                     return;
                 }
                 
-                if (currentCountdown > 0) {
-                    Map<String, String> placeholders = new HashMap<>();
-                    placeholders.put("time", String.valueOf(currentCountdown));
-                    plugin.getMessageManager().sendTeleportCountdown(player, module, currentCountdown, placeholders);
-                }
-                
                 if (checkCancellationConditions() && !hasSentCancelMessage && currentCountdown > 0) {
                     hasSentCancelMessage = true;
                     plugin.getMessageManager().sendTeleportCancelled(player, module, "movement");
@@ -92,6 +86,12 @@ public class TeleportManager {
                     scheduledTask.cancel();
                     activeTeleports.remove(player.getUniqueId());
                     return;
+                }
+                
+                if (currentCountdown > 0) {
+                    Map<String, String> placeholders = new HashMap<>();
+                    placeholders.put("time", String.valueOf(currentCountdown));
+                    plugin.getMessageManager().sendTeleportCountdown(player, module, currentCountdown, placeholders);
                 }
                 
                 currentCountdown--;
@@ -120,6 +120,7 @@ public class TeleportManager {
             Location finalLocation = targetLocation.clone();
             player.teleportAsync(finalLocation).thenAccept(success -> {
                 if (success) {
+                    plugin.getMessageManager().sendTeleportSuccess(player, module);
                     if (onComplete != null) {
                         onComplete.run();
                     }
@@ -131,4 +132,4 @@ public class TeleportManager {
             cancelled = true;
         }
     }
-            }
+    }

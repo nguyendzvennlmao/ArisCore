@@ -17,12 +17,12 @@ public class HomeTeleport {
         this.teleportManager = teleportManager;
     }
     
-    public void teleport(Player player, Location location) {
+    public void teleport(Player player, Location location, String homeName) {
         teleportManager.startTeleport(player, location, new TeleportManager.TeleportCallback() {
             @Override
             public void onCountdown(int time) {
-                String msg = getMessage("chat-teleport-countdown").replace("%time%", String.valueOf(time));
-                String action = getMessage("actionbar-teleport-countdown").replace("%time%", String.valueOf(time));
+                String msg = getMessage("chat-teleport-countdown").replace("%time%", String.valueOf(time)).replace("%home%", homeName);
+                String action = getMessage("actionbar-teleport-countdown").replace("%time%", String.valueOf(time)).replace("%home%", homeName);
                 if (!msg.isEmpty()) player.sendMessage(msg);
                 if (!action.isEmpty()) player.sendActionBar(action);
             }
@@ -31,14 +31,22 @@ public class HomeTeleport {
             public void onCancel() {
                 String msg = getMessage("chat-teleport-cancelled-movement");
                 String action = getMessage("actionbar-teleport-cancelled-movement");
-                if (!msg.isEmpty()) player.sendMessage(msg);
-                if (!action.isEmpty()) player.sendActionBar(action);
+                if (!msg.isEmpty()) {
+                    player.sendMessage(msg);
+                } else {
+                    player.sendMessage(ChatColor.RED + "The transfer was cancelled because you have already moved.");
+                }
+                if (!action.isEmpty()) {
+                    player.sendActionBar(action);
+                } else {
+                    player.sendActionBar(ChatColor.RED + "Transfer cancelled - you moved");
+                }
             }
             
             @Override
             public void onSuccess() {
-                String msg = getMessage("chat-teleport-success");
-                String action = getMessage("actionbar-teleport-success");
+                String msg = getMessage("chat-teleport-success").replace("%home%", homeName);
+                String action = getMessage("actionbar-teleport-success").replace("%home%", homeName);
                 if (!msg.isEmpty()) player.sendMessage(msg);
                 if (!action.isEmpty()) player.sendActionBar(action);
             }
@@ -57,4 +65,4 @@ public class HomeTeleport {
         }
         return "";
     }
-            }
+                    }

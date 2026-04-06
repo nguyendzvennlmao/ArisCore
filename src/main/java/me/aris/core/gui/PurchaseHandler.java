@@ -55,7 +55,10 @@ public class PurchaseHandler {
                     material = Material.CHEST;
                 }
                 ItemStack stack = new ItemStack(material, item.getAmount());
-                player.getInventory().addItem(stack);
+                Map<Integer, ItemStack> remaining = player.getInventory().addItem(stack);
+                if (!remaining.isEmpty()) {
+                    player.getWorld().dropItem(player.getLocation(), remaining.get(0));
+                }
             }
             
             Map<String, String> placeholders = new HashMap<>();
@@ -67,4 +70,4 @@ public class PurchaseHandler {
         }
         return false;
     }
-        }
+                                   }

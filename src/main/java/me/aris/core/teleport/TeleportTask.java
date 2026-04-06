@@ -40,10 +40,6 @@ public class TeleportTask {
             
             if ((dx > 0.05 || dz > 0.05) && countdown > 0 && !hasSentCancel) {
                 hasSentCancel = true;
-                
-                player.sendMessage(ChatColor.RED + "The transfer was cancelled because you have already moved.");
-                player.sendActionBar(ChatColor.RED + "Transfer cancelled - you moved");
-                
                 if (callback != null) {
                     callback.onCancel();
                 }
@@ -54,21 +50,14 @@ public class TeleportTask {
             
             if (countdown <= 0) {
                 player.teleportAsync(targetLocation).thenAccept(success -> {
-                    if (success) {
-                        player.sendMessage(ChatColor.GREEN + "Teleported successfully!");
-                        player.sendActionBar(ChatColor.GREEN + "Teleported!");
-                        if (callback != null) {
-                            callback.onSuccess();
-                        }
+                    if (success && callback != null) {
+                        callback.onSuccess();
                     }
                 });
                 cancel();
                 scheduledTask.cancel();
                 return;
             }
-            
-            player.sendMessage(ChatColor.YELLOW + "Teleporting in " + countdown + " seconds...");
-            player.sendActionBar(ChatColor.YELLOW + "Teleporting in " + countdown + "s");
             
             if (callback != null) {
                 callback.onCountdown(countdown);
@@ -85,4 +74,4 @@ public class TeleportTask {
             task.cancel();
         }
     }
-                    }
+            }

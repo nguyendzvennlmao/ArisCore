@@ -49,58 +49,56 @@ public class MessageManager {
         return ChatColor.translateAlternateColorCodes('&', buffer.toString());
     }
     
-    public void sendTeleportCountdown(Player player, String module, int time, Map<String, String> placeholders) {
-        if (player == null) return;
-        
+    public String getRawMessage(String module, String path) {
         FileConfiguration msgConfig = messageConfigs.get(module.toLowerCase());
-        if (msgConfig == null) return;
+        if (msgConfig == null) return "";
+        String prefix = msgConfig.getString("prefix", "");
+        String message = msgConfig.getString("message." + path, "");
+        if (message.isEmpty()) return "";
+        return translateColors(prefix + message);
+    }
+    
+    public void sendTeleportCountdown(Player player, String module, int time) {
+        if (player == null) return;
         
         FileConfiguration moduleConfig = getModuleConfig(module);
         boolean chatEnabled = moduleConfig.getBoolean("messages.chat", true);
         boolean actionBarEnabled = moduleConfig.getBoolean("messages.action-bar", true);
         
-        String prefix = msgConfig.getString("prefix", "");
-        String chatMessage = msgConfig.getString("message.chat-teleport-countdown", "");
-        String actionBarMessage = msgConfig.getString("message.actionbar-teleport-countdown", "");
-        
-        chatMessage = chatMessage.replace("%time%", String.valueOf(time));
-        actionBarMessage = actionBarMessage.replace("%time%", String.valueOf(time));
+        String chatMessage = getRawMessage(module, "chat-teleport-countdown").replace("%time%", String.valueOf(time));
+        String actionBarMessage = getRawMessage(module, "actionbar-teleport-countdown").replace("%time%", String.valueOf(time));
         
         if (chatEnabled && !chatMessage.isEmpty()) {
-            player.sendMessage(translateColors(prefix + chatMessage));
+            player.sendMessage(chatMessage);
         }
         
         if (actionBarEnabled && !actionBarMessage.isEmpty()) {
-            player.sendActionBar(translateColors(actionBarMessage));
+            player.sendActionBar(actionBarMessage);
         }
     }
     
     public void sendTeleportCancelled(Player player, String module, String reason) {
         if (player == null) return;
         
-        FileConfiguration msgConfig = messageConfigs.get(module.toLowerCase());
-        if (msgConfig == null) return;
-        
         FileConfiguration moduleConfig = getModuleConfig(module);
         boolean chatEnabled = moduleConfig.getBoolean("messages.chat", true);
         boolean actionBarEnabled = moduleConfig.getBoolean("messages.action-bar", true);
         
-        String prefix = msgConfig.getString("prefix", "");
         String path = reason.equals("movement") ? "chat-teleport-cancelled-movement" : "chat-teleport-cancelled";
         String actionPath = reason.equals("movement") ? "actionbar-teleport-cancelled-movement" : "actionbar-teleport-cancelled";
         
-        String chatMessage = msgConfig.getString("message." + path, "");
-        String actionBarMessage = msgConfig.getString("message." + actionPath, "");
+        String chatMessage = getRawMessage(module, path);
+        String actionBarMessage = getRawMessage(module, actionPath);
         
         if (chatEnabled && !chatMessage.isEmpty()) {
-            player.sendMessage(translateColors(prefix + chatMessage));
-        } else if (chatEnabled && reason.equals("movement")) {
+            player.sendMessage(chatMessage);
+        } else if (chatEnabled) {
             player.sendMessage(ChatColor.RED + "The transfer was cancelled because you have already moved.");
         }
         
         if (actionBarEnabled && !actionBarMessage.isEmpty()) {
-            player.sendActionBar(translateColors(actionBarMessage));
-        } else if (actionBarEnabled && reason.equals("movement")) {
+            player.sendActionBar(actionBarMessage);
+        } else if (actionBarEnabled) {
             player.sendActionBar(ChatColor.RED + "Transfer cancelled - you moved");
         }
     }
@@ -108,25 +106,21 @@ public class MessageManager {
     public void sendTeleportSuccess(Player player, String module) {
         if (player == null) return;
         
-        FileConfiguration msgConfig = messageConfigs.get(module.toLowerCase());
-        if (msgConfig == null) return;
-        
         FileConfiguration moduleConfig = getModuleConfig(module);
         boolean chatEnabled = moduleConfig.getBoolean("messages.chat", true);
         boolean actionBarEnabled = moduleConfig.getBoolean("messages.action-bar", true);
         
-        String prefix = msgConfig.getString("prefix", "");
-        String chatMessage = msgConfig.getString("message.chat-teleport-success", "");
-        String actionBarMessage = msgConfig.getString("message.actionbar-teleport-success", "");
+        String chatMessage = getRawMessage(module, "chat-teleport-success");
+        String actionBarMessage = getRawMessage(module, "actionbar-teleport-success");
         
         if (chatEnabled && !chatMessage.isEmpty()) {
-            player.sendMessage(translateColors(prefix + chatMessage));
+            player.sendMessage(chatMessage);
         } else if (chatEnabled) {
             player.sendMessage(ChatColor.GREEN + "Teleported successfully!");
         }
         
         if (actionBarEnabled && !actionBarMessage.isEmpty()) {
-            player.sendActionBar(translateColors(actionBarMessage));
+            player.sendActionBar(actionBarMessage);
         } else if (actionBarEnabled) {
             player.sendActionBar(ChatColor.GREEN + "Teleported!");
         }
@@ -135,16 +129,12 @@ public class MessageManager {
     public void sendMessage(Player player, String path, String module, Map<String, String> placeholders) {
         if (player == null) return;
         
-        FileConfiguration msgConfig = messageConfigs.get(module.toLowerCase());
-        if (msgConfig == null) return;
-        
         FileConfiguration moduleConfig = getModuleConfig(module);
         boolean chatEnabled = moduleConfig.getBoolean("messages.chat", true);
         boolean actionBarEnabled = moduleConfig.getBoolean("messages.action-bar", true);
         
-        String prefix = msgConfig.getString("prefix", "");
-        String chatMessage = msgConfig.getString("message.chat-" + path, "");
-        String actionBarMessage = msgConfig.getString("message.actionbar-" + path, "");
+        String chatMessage = getRawMessage(module, "chat-" + path);
+        String actionBarMessage = getRawMessage(module, "actionbar-" + path);
         
         for (Map.Entry<String, String> entry : placeholders.entrySet()) {
             chatMessage = chatMessage.replace("%" + entry.getKey() + "%", entry.getValue());
@@ -153,14 +143,14 @@ public class MessageManager {
         
         if (chatEnabled && !chatMessage.isEmpty()) {
             if (path.equals("receive-request") || path.equals("receive-here-request")) {
-                sendClickableMessage(player, translateColors(prefix + chatMessage));
+                sendClickableMessage(player, chatMessage);
             } else {
-                player.sendMessage(translateColors(prefix + chatMessage));
+                player.sendMessage(chatMessage);
             }
         }
         
         if (actionBarEnabled && !actionBarMessage.isEmpty()) {
-            player.sendActionBar(translateColors(actionBarMessage));
+            player.sendActionBar(actionBarMessage);
         }
     }
     
@@ -199,4 +189,4 @@ public class MessageManager {
         }
         return new YamlConfiguration();
     }
-                }
+    }

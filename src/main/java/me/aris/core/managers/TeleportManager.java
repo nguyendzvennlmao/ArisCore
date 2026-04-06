@@ -1,7 +1,6 @@
 package me.aris.core.managers;
 
 import me.aris.core.ArisCore;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -11,7 +10,7 @@ import java.util.UUID;
 
 public class TeleportManager {
     private ArisCore plugin;
-    private Map<UUID, Integer> teleportTasks;
+    private Map<UUID, io.papermc.paper.threadedregions.scheduler.ScheduledTask> activeTeleports;
     private Map<UUID, Location> startLocations;
     private Map<UUID, Integer> countdowns;
     private Map<UUID, String> teleportModules;
@@ -20,7 +19,7 @@ public class TeleportManager {
     
     public TeleportManager(ArisCore plugin) {
         this.plugin = plugin;
-        this.teleportTasks = new HashMap<>();
+        this.activeTeleports = new HashMap<>();
         this.startLocations = new HashMap<>();
         this.countdowns = new HashMap<>();
         this.teleportModules = new HashMap<>();
@@ -38,59 +37,60 @@ public class TeleportManager {
         teleportCompletes.put(uuid, onComplete);
         teleportCancels.put(uuid, onCancel);
         
-        int taskId = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
-            @Override
-            public void run() {
-                if (!player.isOnline()) {
-                    cancelTeleport(player);
-                    return;
-                }
-                
-                int currentCountdown = countdowns.getOrDefault(uuid, 0);
-                Location startLoc = startLocations.get(uuid);
-                Location currentLoc = player.getLocation();
-                
-                double dx = Math.abs(startLoc.getX() - currentLoc.getX());
-                double dz = Math.abs(startLoc.getZ() - currentLoc.getZ());
-                
-                if (dx > 0.1 || dz > 0.1) {
-                    String cancelMessage = ChatColor.RED + "The transfer was cancelled because you have already moved.";
-                    player.sendMessage(cancelMessage);
-                    player.sendActionBar(ChatColor.RED + "Transfer cancelled - you moved");
-                    cancelTeleport(player);
-                    return;
-                }
-                
-                if (currentCountdown <= 0) {
-                    player.teleportAsync(targetLocation).thenAccept(success -> {
-                        if (success) {
-                            String successMessage = ChatColor.GREEN + "Teleported successfully!";
-                            player.sendMessage(successMessage);
-                            player.sendActionBar(ChatColor.GREEN + "Teleported!");
-                            if (teleportCompletes.containsKey(uuid)) {
-                                teleportCompletes.get(uuid).run();
-                            }
-                        }
-                    });
-                    cancelTeleport(player);
-                    return;
-                }
-                
-                String countdownMessage = ChatColor.YELLOW + "Teleporting in " + currentCountdown + " seconds...";
-                player.sendMessage(countdownMessage);
-                player.sendActionBar(ChatColor.YELLOW + "Teleporting in " + currentCountdown + "s");
-                countdowns.put(uuid, currentCountdown - 1);
+        io.papermc.paper.threadedregions.scheduler.ScheduledTask task = player.getScheduler().runAtFixedRate(plugin, scheduledTask -> {
+            if (!player.isOnline()) {
+                cancelTeleport(player);
+                scheduledTask.cancel();
+                return;
             }
-        }, 0L, 20L).getTaskId();
+            
+            int currentCountdown = countdowns.getOrDefault(uuid, 0);
+            Location startLoc = startLocations.get(uuid);
+            Location currentLoc = player.getLocation();
+            
+            double dx = Math.abs(startLoc.getX() - currentLoc.getX());
+            double dz = Math.abs(startLoc.getZ() - currentLoc.getZ());
+            
+            if (dx > 0.1 || dz > 0.1) {
+                String cancelMessage = ChatColor.RED + "The transfer was cancelled because you have already moved.";
+                player.sendMessage(cancelMessage);
+                player.sendActionBar(ChatColor.RED + "Transfer cancelled - you moved");
+                cancelTeleport(player);
+                scheduledTask.cancel();
+                return;
+            }
+            
+            if (currentCountdown <= 0) {
+                player.teleportAsync(targetLocation).thenAccept(success -> {
+                    if (success) {
+                        String successMessage = ChatColor.GREEN + "Teleported successfully!";
+                        player.sendMessage(successMessage);
+                        player.sendActionBar(ChatColor.GREEN + "Teleported!");
+                        if (teleportCompletes.containsKey(uuid)) {
+                            teleportCompletes.get(uuid).run();
+                        }
+                    }
+                });
+                cancelTeleport(player);
+                scheduledTask.cancel();
+                return;
+            }
+            
+            String countdownMessage = ChatColor.YELLOW + "Teleporting in " + currentCountdown + " seconds...";
+            player.sendMessage(countdownMessage);
+            player.sendActionBar(ChatColor.YELLOW + "Teleporting in " + currentCountdown + "s");
+            countdowns.put(uuid, currentCountdown - 1);
+            
+        }, null, 1L, 20L);
         
-        teleportTasks.put(uuid, taskId);
+        activeTeleports.put(uuid, task);
     }
     
     public void cancelTeleport(Player player) {
         UUID uuid = player.getUniqueId();
-        Integer taskId = teleportTasks.remove(uuid);
-        if (taskId != null) {
-            Bukkit.getScheduler().cancelTask(taskId);
+        io.papermc.paper.threadedregions.scheduler.ScheduledTask task = activeTeleports.remove(uuid);
+        if (task != null) {
+            task.cancel();
         }
         startLocations.remove(uuid);
         countdowns.remove(uuid);
@@ -104,6 +104,6 @@ public class TeleportManager {
     }
     
     public boolean isTeleporting(Player player) {
-        return teleportTasks.containsKey(player.getUniqueId());
+        return activeTeleports.containsKey(player.getUniqueId());
     }
-                        }
+        }

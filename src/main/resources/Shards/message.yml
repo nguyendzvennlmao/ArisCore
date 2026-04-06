@@ -1,0 +1,17 @@
+prefix: "&8[&eShards&8]&r "
+
+message:
+  chat-balance: "&e%player% &7has &6%balance% Shards&7."
+  chat-balance-self: "&7You have &6%balance% Shards&7."
+  chat-added: "&aAdded &6%amount% Shards &ato &e%player%&a."
+  chat-taken: "&cTaken &6%amount% Shards &cfrom &e%player%&c."
+  chat-set: "&aSet &e%player% &abalance to &6%amount% Shards&a."
+  chat-reset: "&aReset &e%player% &abalance to &60&a."
+  chat-invalid-amount: "&cInvalid amount!"
+  chat-player-not-found: "&cPlayer not found!"
+  chat-no-permission: "&cYou don't have permission!"
+
+actionbar:
+  balance: "&6%balance% Shards"
+  added: "&a+%amount% Shards"
+  taken: "&c-%amount% Shards"

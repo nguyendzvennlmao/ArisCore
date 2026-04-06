@@ -92,9 +92,8 @@ public class TeleportManager {
                     Map<String, String> placeholders = new HashMap<>();
                     placeholders.put("time", String.valueOf(currentCountdown));
                     plugin.getMessageManager().sendTeleportCountdown(player, module, currentCountdown, placeholders);
+                    currentCountdown--;
                 }
-                
-                currentCountdown--;
             }, null, 1L, 20L);
             
             activeTeleports.put(player.getUniqueId(), task);
@@ -132,4 +131,4 @@ public class TeleportManager {
             cancelled = true;
         }
     }
-    }
+        }

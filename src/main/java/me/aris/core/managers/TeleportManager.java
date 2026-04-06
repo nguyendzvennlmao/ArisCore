@@ -1,12 +1,8 @@
 package me.aris.core.managers;
 
 import me.aris.core.ArisCore;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -48,21 +44,7 @@ public class TeleportManager {
             double dz = Math.abs(currentData.startLocation.getZ() - currentLoc.getZ());
             
             if ((dx > 0.1 || dz > 0.1) && currentData.countdown > 0) {
-                String cancelMsg = getMessage(currentData.module, "chat-teleport-cancelled-movement");
-                String cancelAction = getMessage(currentData.module, "actionbar-teleport-cancelled-movement");
-                
-                if (cancelMsg != null && !cancelMsg.isEmpty()) {
-                    player.sendMessage(cancelMsg);
-                } else {
-                    player.sendMessage(ChatColor.RED + "The transfer was cancelled because you have already moved.");
-                }
-                
-                if (cancelAction != null && !cancelAction.isEmpty()) {
-                    player.sendActionBar(cancelAction);
-                } else {
-                    player.sendActionBar(ChatColor.RED + "Transfer cancelled - you moved");
-                }
-                
+                plugin.getMessageManager().sendTeleportCancelled(player, module, "movement");
                 currentData.cancelled = true;
                 if (currentData.onCancel != null) {
                     currentData.onCancel.run();
@@ -76,21 +58,7 @@ public class TeleportManager {
                 Location finalLoc = currentData.targetLocation.clone();
                 player.teleportAsync(finalLoc).thenAccept(success -> {
                     if (success) {
-                        String successMsg = getMessage(currentData.module, "chat-teleport-success");
-                        String successAction = getMessage(currentData.module, "actionbar-teleport-success");
-                        
-                        if (successMsg != null && !successMsg.isEmpty()) {
-                            player.sendMessage(successMsg);
-                        } else {
-                            player.sendMessage(ChatColor.GREEN + "Teleported successfully!");
-                        }
-                        
-                        if (successAction != null && !successAction.isEmpty()) {
-                            player.sendActionBar(successAction);
-                        } else {
-                            player.sendActionBar(ChatColor.GREEN + "Teleported!");
-                        }
-                        
+                        plugin.getMessageManager().sendTeleportSuccess(player, module);
                         if (currentData.onComplete != null) {
                             currentData.onComplete.run();
                         }
@@ -101,41 +69,13 @@ public class TeleportManager {
                 return;
             }
             
-            String countMsg = getMessage(currentData.module, "chat-teleport-countdown");
-            String countAction = getMessage(currentData.module, "actionbar-teleport-countdown");
-            
-            if (countMsg != null && !countMsg.isEmpty()) {
-                player.sendMessage(countMsg.replace("%time%", String.valueOf(currentData.countdown)));
-            } else {
-                player.sendMessage(ChatColor.YELLOW + "Teleporting in " + currentData.countdown + " seconds...");
-            }
-            
-            if (countAction != null && !countAction.isEmpty()) {
-                player.sendActionBar(countAction.replace("%time%", String.valueOf(currentData.countdown)));
-            } else {
-                player.sendActionBar(ChatColor.YELLOW + "Teleporting in " + currentData.countdown + "s");
-            }
+            Map<String, String> placeholders = new HashMap<>();
+            placeholders.put("time", String.valueOf(currentData.countdown));
+            plugin.getMessageManager().sendTeleportCountdown(player, module, currentData.countdown, placeholders);
             
             currentData.countdown--;
             
         }, null, 1L, 20L);
-    }
-    
-    private String getMessage(String module, String path) {
-        try {
-            File file = new File(plugin.getDataFolder(), module + "/message.yml");
-            if (file.exists()) {
-                FileConfiguration config = YamlConfiguration.loadConfiguration(file);
-                String prefix = config.getString("prefix", "");
-                String message = config.getString("message." + path, "");
-                if (message != null && !message.isEmpty()) {
-                    return ChatColor.translateAlternateColorCodes('&', prefix + message);
-                }
-            }
-        } catch (Exception e) {
-            // Ignore
-        }
-        return null;
     }
     
     public void cancelTeleport(Player player) {

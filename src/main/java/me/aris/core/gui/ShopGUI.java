@@ -86,79 +86,100 @@ public class ShopGUI implements Listener {
     }
     
     private void openQuantitySelector(Player player, String category, String itemKey, long price, String materialName, String displayName, String command, int defaultAmount) {
-        FileConfiguration quantityConfig = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "Shop/config.yml"));
-        
-        String title = quantityConfig.getString("gui.quantity-selector.title", "&8ᴄᴏɴғɪʀᴍ ᴘᴜʀᴄʜᴀsᴇ");
-        int rows = quantityConfig.getInt("gui.quantity-selector.rows", 3);
+        String title = shopConfig.getString("gui.quantity-selector.title", "&8ᴄᴏɴғɪʀᴍ ᴘᴜʀᴄʜᴀsᴇ");
+        int rows = shopConfig.getInt("gui.quantity-selector.rows", 3);
         
         Inventory gui = Bukkit.createInventory(null, rows * 9, translateColors(title));
         
-        pendingPurchases.put(player, new PendingPurchase(category, itemKey, price, materialName, displayName, command, defaultAmount));
+        PendingPurchase pending = new PendingPurchase(category, itemKey, price, materialName, displayName, command, defaultAmount);
+        pendingPurchases.put(player, pending);
         
-        int confirmSlot = quantityConfig.getInt("gui.quantity-selector.confirm-button.slot", 15);
-        String confirmMaterial = quantityConfig.getString("gui.quantity-selector.confirm-button.material", "LIME_STAINED_GLASS_PANE");
-        String confirmName = quantityConfig.getString("gui.quantity-selector.confirm-button.displayname", "&aᴄᴏɴғɪʀᴍ");
-        List<String> confirmLore = quantityConfig.getStringList("gui.quantity-selector.confirm-button.lore");
+        int remove64Slot = shopConfig.getInt("gui.quantity-selector.remove64.slot", 9);
+        String remove64Name = shopConfig.getString("gui.quantity-selector.remove64.name", "&cĐặt 1");
+        String remove64Material = shopConfig.getString("gui.quantity-selector.remove64.material", "RED_STAINED_GLASS_PANE");
         
-        int cancelSlot = quantityConfig.getInt("gui.quantity-selector.cancel-button.slot", 11);
-        String cancelMaterial = quantityConfig.getString("gui.quantity-selector.cancel-button.material", "RED_STAINED_GLASS_PANE");
-        String cancelName = quantityConfig.getString("gui.quantity-selector.cancel-button.displayname", "&cᴄᴀɴᴄᴇʟ");
-        List<String> cancelLore = quantityConfig.getStringList("gui.quantity-selector.cancel-button.lore");
+        int remove10Slot = shopConfig.getInt("gui.quantity-selector.remove10.slot", 10);
+        String remove10Name = shopConfig.getString("gui.quantity-selector.remove10.name", "&c-10");
+        String remove10Material = shopConfig.getString("gui.quantity-selector.remove10.material", "RED_STAINED_GLASS_PANE");
         
-        int previewSlot = quantityConfig.getInt("gui.quantity-selector.item-preview.slot", 13);
-        List<String> previewLore = quantityConfig.getStringList("gui.quantity-selector.item-preview.lore");
+        int remove1Slot = shopConfig.getInt("gui.quantity-selector.remove1.slot", 11);
+        String remove1Name = shopConfig.getString("gui.quantity-selector.remove1.name", "&c-1");
+        String remove1Material = shopConfig.getString("gui.quantity-selector.remove1.material", "RED_STAINED_GLASS_PANE");
         
-        Material confirmMat;
-        try {
-            confirmMat = Material.valueOf(confirmMaterial);
-        } catch (IllegalArgumentException e) {
-            confirmMat = Material.LIME_STAINED_GLASS_PANE;
-        }
+        int add1Slot = shopConfig.getInt("gui.quantity-selector.add1.slot", 15);
+        String add1Name = shopConfig.getString("gui.quantity-selector.add1.name", "&a+1");
+        String add1Material = shopConfig.getString("gui.quantity-selector.add1.material", "LIME_STAINED_GLASS_PANE");
         
-        ItemStack confirmButton = new ItemStack(confirmMat);
-        ItemMeta confirmMeta = confirmButton.getItemMeta();
-        confirmMeta.setDisplayName(translateColors(confirmName));
-        List<String> coloredConfirmLore = confirmLore.stream()
-            .map(line -> line.replace("%total_price%", String.valueOf(price * defaultAmount)).replace("%amount%", String.valueOf(defaultAmount)))
-            .map(this::translateColors).toList();
-        confirmMeta.setLore(coloredConfirmLore);
-        confirmButton.setItemMeta(confirmMeta);
-        gui.setItem(confirmSlot, confirmButton);
+        int add10Slot = shopConfig.getInt("gui.quantity-selector.add10.slot", 16);
+        String add10Name = shopConfig.getString("gui.quantity-selector.add10.name", "&a+10");
+        String add10Material = shopConfig.getString("gui.quantity-selector.add10.material", "LIME_STAINED_GLASS_PANE");
         
-        Material cancelMat;
-        try {
-            cancelMat = Material.valueOf(cancelMaterial);
-        } catch (IllegalArgumentException e) {
-            cancelMat = Material.RED_STAINED_GLASS_PANE;
-        }
+        int set64Slot = shopConfig.getInt("gui.quantity-selector.set64.slot", 17);
+        String set64Name = shopConfig.getString("gui.quantity-selector.set64.name", "&aĐặt 64");
+        String set64Material = shopConfig.getString("gui.quantity-selector.set64.material", "LIME_STAINED_GLASS_PANE");
         
-        ItemStack cancelButton = new ItemStack(cancelMat);
-        ItemMeta cancelMeta = cancelButton.getItemMeta();
-        cancelMeta.setDisplayName(translateColors(cancelName));
-        if (cancelLore != null && !cancelLore.isEmpty()) {
-            cancelMeta.setLore(cancelLore.stream().map(this::translateColors).toList());
-        }
-        cancelButton.setItemMeta(cancelMeta);
-        gui.setItem(cancelSlot, cancelButton);
+        int cancelSlot = shopConfig.getInt("gui.quantity-selector.cancel.slot", 21);
+        String cancelName = shopConfig.getString("gui.quantity-selector.cancel.name", "&#e00202ᴄᴀɴᴄᴇʟ");
+        String cancelMaterial = shopConfig.getString("gui.quantity-selector.cancel.material", "RED_STAINED_GLASS_PANE");
         
-        Material previewMat;
-        try {
-            previewMat = Material.valueOf(materialName);
-        } catch (IllegalArgumentException e) {
-            previewMat = Material.CHEST;
-        }
+        int confirmSlot = shopConfig.getInt("gui.quantity-selector.confirm.slot", 23);
+        String confirmName = shopConfig.getString("gui.quantity-selector.confirm.name", "&#02de4fᴄᴏɴғɪʀᴍ");
+        String confirmMaterial = shopConfig.getString("gui.quantity-selector.confirm.material", "LIME_STAINED_GLASS_PANE");
         
-        ItemStack previewItem = new ItemStack(previewMat);
-        ItemMeta previewMeta = previewItem.getItemMeta();
-        previewMeta.setDisplayName(translateColors(displayName));
-        List<String> coloredPreviewLore = previewLore.stream()
-            .map(line -> line.replace("%price%", String.valueOf(price)).replace("%amount%", String.valueOf(defaultAmount)))
-            .map(this::translateColors).toList();
-        previewMeta.setLore(coloredPreviewLore);
-        previewItem.setItemMeta(previewMeta);
-        gui.setItem(previewSlot, previewItem);
+        int previewSlot = shopConfig.getInt("gui.quantity-selector.item-preview.slot", 13);
+        List<String> previewLore = shopConfig.getStringList("gui.quantity-selector.item-preview.lore");
+        
+        addButton(gui, remove64Slot, remove64Material, remove64Name);
+        addButton(gui, remove10Slot, remove10Material, remove10Name);
+        addButton(gui, remove1Slot, remove1Material, remove1Name);
+        addButton(gui, add1Slot, add1Material, add1Name);
+        addButton(gui, add10Slot, add10Material, add10Name);
+        addButton(gui, set64Slot, set64Material, set64Name);
+        addButton(gui, cancelSlot, cancelMaterial, cancelName);
+        addButton(gui, confirmSlot, confirmMaterial, confirmName);
+        
+        updatePreviewItem(gui, previewSlot, materialName, displayName, price, pending.amount, previewLore);
         
         player.openInventory(gui);
+    }
+    
+    private void addButton(Inventory gui, int slot, String materialName, String displayName) {
+        Material material;
+        try {
+            material = Material.valueOf(materialName);
+        } catch (IllegalArgumentException e) {
+            material = Material.STONE;
+        }
+        
+        ItemStack button = new ItemStack(material);
+        ItemMeta meta = button.getItemMeta();
+        meta.setDisplayName(translateColors(displayName));
+        button.setItemMeta(meta);
+        gui.setItem(slot, button);
+    }
+    
+    private void updatePreviewItem(Inventory gui, int slot, String materialName, String displayName, long price, int amount, List<String> lore) {
+        Material material;
+        try {
+            material = Material.valueOf(materialName);
+        } catch (IllegalArgumentException e) {
+            material = Material.CHEST;
+        }
+        
+        ItemStack preview = new ItemStack(material);
+        ItemMeta meta = preview.getItemMeta();
+        meta.setDisplayName(translateColors(displayName));
+        
+        long totalPrice = price * amount;
+        List<String> coloredLore = lore.stream()
+            .map(line -> line.replace("%price%", String.valueOf(price))
+                           .replace("%amount%", String.valueOf(amount))
+                           .replace("%total_price%", String.valueOf(totalPrice)))
+            .map(this::translateColors)
+            .toList();
+        meta.setLore(coloredLore);
+        preview.setItemMeta(meta);
+        gui.setItem(slot, preview);
     }
     
     @EventHandler
@@ -191,18 +212,47 @@ public class ShopGUI implements Listener {
             ItemStack clicked = event.getCurrentItem();
             if (clicked == null || !clicked.hasItemMeta()) return;
             
-            String displayName = ChatColor.stripColor(clicked.getItemMeta().getDisplayName());
-            String confirmName = ChatColor.stripColor(translateColors(shopConfig.getString("gui.quantity-selector.confirm-button.displayname", "&aᴄᴏɴғɪʀᴍ")));
-            String cancelName = ChatColor.stripColor(translateColors(shopConfig.getString("gui.quantity-selector.cancel-button.displayname", "&cᴄᴀɴᴄᴇʟ")));
+            PendingPurchase pending = pendingPurchases.get(player);
+            if (pending == null) {
+                player.closeInventory();
+                return;
+            }
             
-            if (displayName.equals(confirmName)) {
-                PendingPurchase pending = pendingPurchases.remove(player);
-                if (pending != null) {
-                    processPurchase(player, pending);
-                }
+            String displayName = ChatColor.stripColor(clicked.getItemMeta().getDisplayName());
+            
+            String remove64Name = ChatColor.stripColor(translateColors(shopConfig.getString("gui.quantity-selector.remove64.name", "&cĐặt 1")));
+            String remove10Name = ChatColor.stripColor(translateColors(shopConfig.getString("gui.quantity-selector.remove10.name", "&c-10")));
+            String remove1Name = ChatColor.stripColor(translateColors(shopConfig.getString("gui.quantity-selector.remove1.name", "&c-1")));
+            String add1Name = ChatColor.stripColor(translateColors(shopConfig.getString("gui.quantity-selector.add1.name", "&a+1")));
+            String add10Name = ChatColor.stripColor(translateColors(shopConfig.getString("gui.quantity-selector.add10.name", "&a+10")));
+            String set64Name = ChatColor.stripColor(translateColors(shopConfig.getString("gui.quantity-selector.set64.name", "&aĐặt 64")));
+            String cancelName = ChatColor.stripColor(translateColors(shopConfig.getString("gui.quantity-selector.cancel.name", "&#e00202ᴄᴀɴᴄᴇʟ")));
+            String confirmName = ChatColor.stripColor(translateColors(shopConfig.getString("gui.quantity-selector.confirm.name", "&#02de4fᴄᴏɴғɪʀᴍ")));
+            
+            if (displayName.equals(remove64Name)) {
+                pending.amount = 1;
+                refreshQuantitySelector(player, pending);
+            } else if (displayName.equals(remove10Name)) {
+                pending.amount = Math.max(1, pending.amount - 10);
+                refreshQuantitySelector(player, pending);
+            } else if (displayName.equals(remove1Name)) {
+                pending.amount = Math.max(1, pending.amount - 1);
+                refreshQuantitySelector(player, pending);
+            } else if (displayName.equals(add1Name)) {
+                pending.amount = Math.min(6400, pending.amount + 1);
+                refreshQuantitySelector(player, pending);
+            } else if (displayName.equals(add10Name)) {
+                pending.amount = Math.min(6400, pending.amount + 10);
+                refreshQuantitySelector(player, pending);
+            } else if (displayName.equals(set64Name)) {
+                pending.amount = 64;
+                refreshQuantitySelector(player, pending);
+            } else if (displayName.equals(cancelName)) {
+                pendingPurchases.remove(player);
                 player.closeInventory();
                 openMainShop(player);
-            } else if (displayName.equals(cancelName)) {
+            } else if (displayName.equals(confirmName)) {
+                processPurchase(player, pending);
                 pendingPurchases.remove(player);
                 player.closeInventory();
                 openMainShop(player);
@@ -240,6 +290,61 @@ public class ShopGUI implements Listener {
         }
     }
     
+    private void refreshQuantitySelector(Player player, PendingPurchase pending) {
+        String title = shopConfig.getString("gui.quantity-selector.title", "&8ᴄᴏɴғɪʀᴍ ᴘᴜʀᴄʜᴀsᴇ");
+        int rows = shopConfig.getInt("gui.quantity-selector.rows", 3);
+        
+        Inventory gui = Bukkit.createInventory(null, rows * 9, translateColors(title));
+        
+        int remove64Slot = shopConfig.getInt("gui.quantity-selector.remove64.slot", 9);
+        String remove64Material = shopConfig.getString("gui.quantity-selector.remove64.material", "RED_STAINED_GLASS_PANE");
+        String remove64Name = shopConfig.getString("gui.quantity-selector.remove64.name", "&cĐặt 1");
+        
+        int remove10Slot = shopConfig.getInt("gui.quantity-selector.remove10.slot", 10);
+        String remove10Material = shopConfig.getString("gui.quantity-selector.remove10.material", "RED_STAINED_GLASS_PANE");
+        String remove10Name = shopConfig.getString("gui.quantity-selector.remove10.name", "&c-10");
+        
+        int remove1Slot = shopConfig.getInt("gui.quantity-selector.remove1.slot", 11);
+        String remove1Material = shopConfig.getString("gui.quantity-selector.remove1.material", "RED_STAINED_GLASS_PANE");
+        String remove1Name = shopConfig.getString("gui.quantity-selector.remove1.name", "&c-1");
+        
+        int add1Slot = shopConfig.getInt("gui.quantity-selector.add1.slot", 15);
+        String add1Material = shopConfig.getString("gui.quantity-selector.add1.material", "LIME_STAINED_GLASS_PANE");
+        String add1Name = shopConfig.getString("gui.quantity-selector.add1.name", "&a+1");
+        
+        int add10Slot = shopConfig.getInt("gui.quantity-selector.add10.slot", 16);
+        String add10Material = shopConfig.getString("gui.quantity-selector.add10.material", "LIME_STAINED_GLASS_PANE");
+        String add10Name = shopConfig.getString("gui.quantity-selector.add10.name", "&a+10");
+        
+        int set64Slot = shopConfig.getInt("gui.quantity-selector.set64.slot", 17);
+        String set64Material = shopConfig.getString("gui.quantity-selector.set64.material", "LIME_STAINED_GLASS_PANE");
+        String set64Name = shopConfig.getString("gui.quantity-selector.set64.name", "&aĐặt 64");
+        
+        int cancelSlot = shopConfig.getInt("gui.quantity-selector.cancel.slot", 21);
+        String cancelMaterial = shopConfig.getString("gui.quantity-selector.cancel.material", "RED_STAINED_GLASS_PANE");
+        String cancelName = shopConfig.getString("gui.quantity-selector.cancel.name", "&#e00202ᴄᴀɴᴄᴇʟ");
+        
+        int confirmSlot = shopConfig.getInt("gui.quantity-selector.confirm.slot", 23);
+        String confirmMaterial = shopConfig.getString("gui.quantity-selector.confirm.material", "LIME_STAINED_GLASS_PANE");
+        String confirmName = shopConfig.getString("gui.quantity-selector.confirm.name", "&#02de4fᴄᴏɴғɪʀᴍ");
+        
+        int previewSlot = shopConfig.getInt("gui.quantity-selector.item-preview.slot", 13);
+        List<String> previewLore = shopConfig.getStringList("gui.quantity-selector.item-preview.lore");
+        
+        addButton(gui, remove64Slot, remove64Material, remove64Name);
+        addButton(gui, remove10Slot, remove10Material, remove10Name);
+        addButton(gui, remove1Slot, remove1Material, remove1Name);
+        addButton(gui, add1Slot, add1Material, add1Name);
+        addButton(gui, add10Slot, add10Material, add10Name);
+        addButton(gui, set64Slot, set64Material, set64Name);
+        addButton(gui, cancelSlot, cancelMaterial, cancelName);
+        addButton(gui, confirmSlot, confirmMaterial, confirmName);
+        
+        updatePreviewItem(gui, previewSlot, pending.materialName, pending.displayName, pending.price, pending.amount, previewLore);
+        
+        player.openInventory(gui);
+    }
+    
     private void processPurchase(Player player, PendingPurchase pending) {
         long totalPrice = pending.price * pending.amount;
         
@@ -262,76 +367,4 @@ public class ShopGUI implements Listener {
                 try {
                     material = Material.valueOf(pending.materialName);
                 } catch (IllegalArgumentException e) {
-                    material = Material.CHEST;
-                }
-                ItemStack item = new ItemStack(material, pending.amount);
-                player.getInventory().addItem(item);
-            }
-        }
-    }
-    
-    private void openCategoryShop(Player player, String category) {
-        FileConfiguration catConfig = categoryConfigs.get(category);
-        if (catConfig == null) return;
-        
-        String title = catConfig.getString("title", "&8Shop");
-        int rows = catConfig.getInt("rows", 3);
-        
-        Inventory gui = Bukkit.createInventory(null, rows * 9, translateColors(title));
-        
-        for (String itemKey : catConfig.getConfigurationSection("items").getKeys(false)) {
-            int slot = catConfig.getInt("items." + itemKey + ".slot");
-            String materialName = catConfig.getString("items." + itemKey + ".material");
-            String displayName = catConfig.getString("items." + itemKey + ".displayname");
-            long price = catConfig.getLong("items." + itemKey + ".price");
-            List<String> lore = catConfig.getStringList("items." + itemKey + ".lore");
-            
-            Material material;
-            try {
-                material = Material.valueOf(materialName);
-            } catch (IllegalArgumentException e) {
-                material = Material.CHEST;
-            }
-            
-            ItemStack item = new ItemStack(material);
-            ItemMeta meta = item.getItemMeta();
-            meta.setDisplayName(translateColors(displayName));
-            
-            List<String> coloredLore = lore.stream()
-                .map(line -> line.replace("%price%", String.valueOf(price)))
-                .map(this::translateColors)
-                .toList();
-            meta.setLore(coloredLore);
-            item.setItemMeta(meta);
-            gui.setItem(slot, item);
-        }
-        
-        ItemStack backButton = new ItemStack(Material.RED_STAINED_GLASS_PANE);
-        ItemMeta backMeta = backButton.getItemMeta();
-        backMeta.setDisplayName(translateColors("&#e00202ʙᴀᴄᴋ"));
-        backButton.setItemMeta(backMeta);
-        gui.setItem(22, backButton);
-        
-        player.openInventory(gui);
-    }
-    
-    private static class PendingPurchase {
-        String category;
-        String itemKey;
-        long price;
-        String materialName;
-        String displayName;
-        String command;
-        int amount;
-        
-        PendingPurchase(String category, String itemKey, long price, String materialName, String displayName, String command, int amount) {
-            this.category = category;
-            this.itemKey = itemKey;
-            this.price = price;
-            this.materialName = materialName;
-            this.displayName = displayName;
-            this.command = command;
-            this.amount = amount;
-        }
-    }
-                }
+                    material = Material.CHES

@@ -158,11 +158,11 @@ public class ArisCore extends JavaPlugin {
         
         createConfigFromResource("Shop/config.yml", "Shop/config.yml");
         createConfigFromResource("Shop/message.yml", "Shop/message.yml");
-        createConfigFromResource("Shop/gui/main.yml", "Shop/gui/main.yml");
         createConfigFromResource("Shop/gui/end.yml", "Shop/gui/end.yml");
         createConfigFromResource("Shop/gui/nether.yml", "Shop/gui/nether.yml");
         createConfigFromResource("Shop/gui/gear.yml", "Shop/gui/gear.yml");
         createConfigFromResource("Shop/gui/food.yml", "Shop/gui/food.yml");
+        createConfigFromResource("Shop/gui/shards.yml", "Shop/gui/shards.yml");
         
         createConfigFromResource("Shards/config.yml", "Shards/config.yml");
         createConfigFromResource("Shards/message.yml", "Shards/message.yml");

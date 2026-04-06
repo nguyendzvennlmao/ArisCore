@@ -3,7 +3,7 @@ version: 1.0
 main: me.aris.core.ArisCore
 api-version: "1.21"
 folia-supported: true
-description: Core plugin with TPA, Home, Warp, Spawn, AFK, RTP
+description: Core plugin with TPA, Home, Warp, Spawn, AFK, RTP, Shop, Shards
 author: Aris
 
 commands:
@@ -73,6 +73,12 @@ commands:
   rtp:
     description: Random teleport
     usage: /rtp
+  shop:
+    description: Open shop
+    usage: /shop
+  shards:
+    description: Shards management
+    usage: /shards <give|take|set|reset|balance> [player] [amount]
 
 permissions:
   ariscore.tpa:
@@ -117,5 +123,9 @@ permissions:
     default: op
   ariscore.rtp:
     default: true
-  ariscore.admin:
+  ariscore.shop:
+    default: true
+  ariscore.shards:
+    default: true
+  ariscore.shards.admin:
     default: op

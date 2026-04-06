@@ -13,156 +13,151 @@ import java.util.UUID;
 
 public class TeleportManager {
     private ArisCore plugin;
-    private Map<UUID, io.papermc.paper.threadedregions.scheduler.ScheduledTask> activeTeleports;
-    private Map<UUID, Location> startLocations;
-    private Map<UUID, Integer> countdowns;
-    private Map<UUID, String> teleportModules;
-    private Map<UUID, Runnable> teleportCompletes;
-    private Map<UUID, Runnable> teleportCancels;
+    private Map<UUID, TeleportData> activeTeleports;
     
     public TeleportManager(ArisCore plugin) {
         this.plugin = plugin;
         this.activeTeleports = new HashMap<>();
-        this.startLocations = new HashMap<>();
-        this.countdowns = new HashMap<>();
-        this.teleportModules = new HashMap<>();
-        this.teleportCompletes = new HashMap<>();
-        this.teleportCancels = new HashMap<>();
     }
     
     public void startTeleport(Player player, Location targetLocation, String module, Runnable onComplete, Runnable onCancel) {
         cancelTeleport(player);
         
-        UUID uuid = player.getUniqueId();
-        startLocations.put(uuid, player.getLocation().clone());
-        countdowns.put(uuid, plugin.getConfigManager().getTeleportCountdown());
-        teleportModules.put(uuid, module);
-        teleportCompletes.put(uuid, onComplete);
-        teleportCancels.put(uuid, onCancel);
+        TeleportData data = new TeleportData();
+        data.player = player;
+        data.targetLocation = targetLocation;
+        data.module = module;
+        data.onComplete = onComplete;
+        data.onCancel = onCancel;
+        data.startLocation = player.getLocation().clone();
+        data.countdown = plugin.getConfigManager().getTeleportCountdown();
+        data.cancelled = false;
         
-        io.papermc.paper.threadedregions.scheduler.ScheduledTask task = player.getScheduler().runAtFixedRate(plugin, scheduledTask -> {
-            if (!player.isOnline()) {
-                cancelTeleport(player);
-                scheduledTask.cancel();
+        activeTeleports.put(player.getUniqueId(), data);
+        
+        data.task = player.getScheduler().runAtFixedRate(plugin, scheduledTask -> {
+            TeleportData currentData = activeTeleports.get(player.getUniqueId());
+            if (currentData == null || currentData.cancelled || !player.isOnline()) {
+                if (scheduledTask != null) scheduledTask.cancel();
+                activeTeleports.remove(player.getUniqueId());
                 return;
             }
             
-            int currentCountdown = countdowns.getOrDefault(uuid, 0);
-            Location startLoc = startLocations.get(uuid);
             Location currentLoc = player.getLocation();
+            double dx = Math.abs(currentData.startLocation.getX() - currentLoc.getX());
+            double dz = Math.abs(currentData.startLocation.getZ() - currentLoc.getZ());
             
-            double dx = Math.abs(startLoc.getX() - currentLoc.getX());
-            double dz = Math.abs(startLoc.getZ() - currentLoc.getZ());
-            
-            if ((dx > 0.1 || dz > 0.1) && currentCountdown > 0) {
-                String cancelMessage = getMessageFromFile(module, "chat-teleport-cancelled-movement");
-                String cancelActionBar = getMessageFromFile(module, "actionbar-teleport-cancelled-movement");
+            if ((dx > 0.1 || dz > 0.1) && currentData.countdown > 0) {
+                String cancelMsg = getMessage(currentData.module, "chat-teleport-cancelled-movement");
+                String cancelAction = getMessage(currentData.module, "actionbar-teleport-cancelled-movement");
                 
-                if (!cancelMessage.isEmpty()) {
-                    player.sendMessage(cancelMessage);
+                if (cancelMsg != null && !cancelMsg.isEmpty()) {
+                    player.sendMessage(cancelMsg);
                 } else {
                     player.sendMessage(ChatColor.RED + "The transfer was cancelled because you have already moved.");
                 }
                 
-                if (!cancelActionBar.isEmpty()) {
-                    player.sendActionBar(cancelActionBar);
+                if (cancelAction != null && !cancelAction.isEmpty()) {
+                    player.sendActionBar(cancelAction);
                 } else {
                     player.sendActionBar(ChatColor.RED + "Transfer cancelled - you moved");
                 }
                 
-                cancelTeleport(player);
-                scheduledTask.cancel();
+                currentData.cancelled = true;
+                if (currentData.onCancel != null) {
+                    currentData.onCancel.run();
+                }
+                if (scheduledTask != null) scheduledTask.cancel();
+                activeTeleports.remove(player.getUniqueId());
                 return;
             }
             
-            if (currentCountdown <= 0) {
-                player.teleportAsync(targetLocation).thenAccept(success -> {
+            if (currentData.countdown <= 0) {
+                Location finalLoc = currentData.targetLocation.clone();
+                player.teleportAsync(finalLoc).thenAccept(success -> {
                     if (success) {
-                        String successMessage = getMessageFromFile(module, "chat-teleport-success");
-                        String successActionBar = getMessageFromFile(module, "actionbar-teleport-success");
+                        String successMsg = getMessage(currentData.module, "chat-teleport-success");
+                        String successAction = getMessage(currentData.module, "actionbar-teleport-success");
                         
-                        if (!successMessage.isEmpty()) {
-                            player.sendMessage(successMessage);
+                        if (successMsg != null && !successMsg.isEmpty()) {
+                            player.sendMessage(successMsg);
                         } else {
                             player.sendMessage(ChatColor.GREEN + "Teleported successfully!");
                         }
                         
-                        if (!successActionBar.isEmpty()) {
-                            player.sendActionBar(successActionBar);
+                        if (successAction != null && !successAction.isEmpty()) {
+                            player.sendActionBar(successAction);
                         } else {
                             player.sendActionBar(ChatColor.GREEN + "Teleported!");
                         }
                         
-                        if (teleportCompletes.containsKey(uuid)) {
-                            teleportCompletes.get(uuid).run();
+                        if (currentData.onComplete != null) {
+                            currentData.onComplete.run();
                         }
                     }
                 });
-                cancelTeleport(player);
-                scheduledTask.cancel();
+                if (scheduledTask != null) scheduledTask.cancel();
+                activeTeleports.remove(player.getUniqueId());
                 return;
             }
             
-            String countdownMessage = getMessageFromFile(module, "chat-teleport-countdown");
-            String countdownActionBar = getMessageFromFile(module, "actionbar-teleport-countdown");
+            String countMsg = getMessage(currentData.module, "chat-teleport-countdown");
+            String countAction = getMessage(currentData.module, "actionbar-teleport-countdown");
             
-            countdownMessage = countdownMessage.replace("%time%", String.valueOf(currentCountdown));
-            countdownActionBar = countdownActionBar.replace("%time%", String.valueOf(currentCountdown));
-            
-            if (!countdownMessage.isEmpty()) {
-                player.sendMessage(countdownMessage);
+            if (countMsg != null && !countMsg.isEmpty()) {
+                player.sendMessage(countMsg.replace("%time%", String.valueOf(currentData.countdown)));
             } else {
-                player.sendMessage(ChatColor.YELLOW + "Teleporting in " + currentCountdown + " seconds...");
+                player.sendMessage(ChatColor.YELLOW + "Teleporting in " + currentData.countdown + " seconds...");
             }
             
-            if (!countdownActionBar.isEmpty()) {
-                player.sendActionBar(countdownActionBar);
+            if (countAction != null && !countAction.isEmpty()) {
+                player.sendActionBar(countAction.replace("%time%", String.valueOf(currentData.countdown)));
             } else {
-                player.sendActionBar(ChatColor.YELLOW + "Teleporting in " + currentCountdown + "s");
+                player.sendActionBar(ChatColor.YELLOW + "Teleporting in " + currentData.countdown + "s");
             }
             
-            countdowns.put(uuid, currentCountdown - 1);
+            currentData.countdown--;
             
         }, null, 1L, 20L);
-        
-        activeTeleports.put(uuid, task);
     }
     
-    private String getMessageFromFile(String module, String path) {
+    private String getMessage(String module, String path) {
         try {
             File file = new File(plugin.getDataFolder(), module + "/message.yml");
             if (file.exists()) {
                 FileConfiguration config = YamlConfiguration.loadConfiguration(file);
                 String prefix = config.getString("prefix", "");
                 String message = config.getString("message." + path, "");
-                if (!message.isEmpty()) {
+                if (message != null && !message.isEmpty()) {
                     return ChatColor.translateAlternateColorCodes('&', prefix + message);
                 }
             }
         } catch (Exception e) {
-            plugin.getLogger().warning("Failed to load message from " + module + "/message.yml: " + e.getMessage());
+            // Ignore
         }
-        return "";
+        return null;
     }
     
     public void cancelTeleport(Player player) {
-        UUID uuid = player.getUniqueId();
-        io.papermc.paper.threadedregions.scheduler.ScheduledTask task = activeTeleports.remove(uuid);
-        if (task != null) {
-            task.cancel();
+        TeleportData data = activeTeleports.remove(player.getUniqueId());
+        if (data != null && data.task != null) {
+            data.task.cancel();
         }
-        startLocations.remove(uuid);
-        countdowns.remove(uuid);
-        teleportModules.remove(uuid);
-        
-        if (teleportCancels.containsKey(uuid)) {
-            teleportCancels.get(uuid).run();
-            teleportCancels.remove(uuid);
-        }
-        teleportCompletes.remove(uuid);
     }
     
     public boolean isTeleporting(Player player) {
         return activeTeleports.containsKey(player.getUniqueId());
+    }
+    
+    private static class TeleportData {
+        Player player;
+        Location targetLocation;
+        String module;
+        Runnable onComplete;
+        Runnable onCancel;
+        Location startLocation;
+        int countdown;
+        boolean cancelled;
+        io.papermc.paper.threadedregions.scheduler.ScheduledTask task;
     }
             }

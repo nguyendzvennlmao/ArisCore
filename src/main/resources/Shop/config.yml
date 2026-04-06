@@ -1,0 +1,81 @@
+enabled: true
+currency: SHARDS
+
+currencies:
+  shards:
+    balance-placeholder: "%arisshards_balance%"
+    take-command: "arishards take %player% %price%"
+
+main-menu:
+  title: "&8ѕʜᴏᴘ"
+  rows: 3
+  categories:
+    end:
+      displayname: "&#0bf592ᴇɴᴅ"
+      material: END_STONE
+      slot: 11
+      lore:
+        - "&fClick to view"
+    nether:
+      displayname: "&#0bf592ɴᴇᴛʜᴇʀ"
+      material: MAGMA_BLOCK
+      slot: 12
+      lore:
+        - "&fClick to view"
+    gear:
+      displayname: "&#0bf592ɢᴇᴀʀ"
+      material: TOTEM_OF_UNDYING
+      slot: 13
+      lore:
+        - "&fClick to view"
+    food:
+      displayname: "&#0bf592ꜰᴏᴏᴅ"
+      material: COOKED_BEEF
+      slot: 14
+      lore:
+        - "&fClick to view"
+
+gui:
+  quantity-selector:
+    title: "&8ᴄᴏɴғɪʀᴍ ᴘᴜʀᴄʜᴀsᴇ"
+    rows: 3
+    confirm-button:
+      slot: 15
+      material: LIME_STAINED_GLASS_PANE
+      displayname: "&aᴄᴏɴғɪʀᴍ"
+      lore:
+        - "&fTotal Price: &#0bf52b%total_price%"
+        - "&fAmount: &e%amount%x"
+        - ""
+        - "&7Click to purchase"
+    cancel-button:
+      slot: 11
+      material: RED_STAINED_GLASS_PANE
+      displayname: "&cᴄᴀɴᴄᴇʟ"
+      lore:
+        - "&fClick to cancel"
+    item-preview:
+      slot: 13
+      lore:
+        - "&fPrice per item: &#0bf52b%price%"
+        - "&fCurrent Amount: &e%amount%x"
+        - ""
+        - "&7Left-Click: &a+1"
+        - "&7Right-Click: &c-1"
+        - "&7Shift + Left-Click: &a+10"
+        - "&7Shift + Right-Click: &c-10"
+  back-button:
+    material: RED_STAINED_GLASS_PANE
+    displayname: "&#e00202ʙᴀᴄᴋ"
+    lore:
+      - "&fClick to return"
+  next-page:
+    material: ARROW
+    displayname: "&#f00f0cɴᴇxᴛ"
+    lore:
+      - "&fClick to go to next page"
+  last-page:
+    material: ARROW
+    displayname: "&#f00f0cʙᴀᴄᴋ"
+    lore:
+      - "&fClick to go to last page"

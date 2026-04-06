@@ -23,24 +23,24 @@ public class HomeTeleport {
             public void onCountdown(int time) {
                 String msg = getMessage("chat-teleport-countdown").replace("%time%", String.valueOf(time));
                 String action = getMessage("actionbar-teleport-countdown").replace("%time%", String.valueOf(time));
-                player.sendMessage(msg);
-                player.sendActionBar(action);
+                if (!msg.isEmpty()) player.sendMessage(msg);
+                if (!action.isEmpty()) player.sendActionBar(action);
             }
             
             @Override
             public void onCancel() {
                 String msg = getMessage("chat-teleport-cancelled-movement");
                 String action = getMessage("actionbar-teleport-cancelled-movement");
-                player.sendMessage(msg);
-                player.sendActionBar(action);
+                if (!msg.isEmpty()) player.sendMessage(msg);
+                if (!action.isEmpty()) player.sendActionBar(action);
             }
             
             @Override
             public void onSuccess() {
                 String msg = getMessage("chat-teleport-success");
                 String action = getMessage("actionbar-teleport-success");
-                player.sendMessage(msg);
-                player.sendActionBar(action);
+                if (!msg.isEmpty()) player.sendMessage(msg);
+                if (!action.isEmpty()) player.sendActionBar(action);
             }
         });
     }
@@ -57,4 +57,4 @@ public class HomeTeleport {
         }
         return "";
     }
-          }
+            }

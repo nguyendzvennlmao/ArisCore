@@ -44,7 +44,8 @@ public class TeleportManager {
         private int currentCountdown;
         private io.papermc.paper.threadedregions.scheduler.ScheduledTask task;
         private boolean cancelled;
-        private boolean hasCancelled;
+        private boolean hasSentCancelMessage;
+        private boolean hasTeleported;
         
         public TeleportTask(Player player, Location targetLocation, String module, Runnable onComplete, Runnable onCancel) {
             this.player = player;
@@ -55,7 +56,8 @@ public class TeleportManager {
             this.onCancel = onCancel;
             this.currentCountdown = plugin.getConfigManager().getTeleportCountdown();
             this.cancelled = false;
-            this.hasCancelled = false;
+            this.hasSentCancelMessage = false;
+            this.hasTeleported = false;
         }
         
         public void start() {
@@ -66,8 +68,9 @@ public class TeleportManager {
                     return;
                 }
                 
-                if (checkCancellationConditions() && !hasCancelled) {
-                    hasCancelled = true;
+                if (checkCancellationConditions() && !hasSentCancelMessage) {
+                    hasSentCancelMessage = true;
+                    plugin.getMessageManager().sendTeleportCancelled(player, module, "movement");
                     cancelTeleport();
                     scheduledTask.cancel();
                     activeTeleports.remove(player.getUniqueId());
@@ -77,17 +80,20 @@ public class TeleportManager {
                     return;
                 }
                 
-                if (currentCountdown <= 0) {
+                if (currentCountdown <= 0 && !hasTeleported) {
+                    hasTeleported = true;
                     executeTeleport();
                     scheduledTask.cancel();
                     activeTeleports.remove(player.getUniqueId());
                     return;
                 }
                 
-                Map<String, String> placeholders = new HashMap<>();
-                placeholders.put("time", String.valueOf(currentCountdown));
-                plugin.getMessageManager().sendTeleportCountdown(player, module, currentCountdown, placeholders);
-                currentCountdown--;
+                if (currentCountdown > 0) {
+                    Map<String, String> placeholders = new HashMap<>();
+                    placeholders.put("time", String.valueOf(currentCountdown));
+                    plugin.getMessageManager().sendTeleportCountdown(player, module, currentCountdown, placeholders);
+                    currentCountdown--;
+                }
             }, null, 1L, 20L);
             
             activeTeleports.put(player.getUniqueId(), task);
@@ -112,7 +118,6 @@ public class TeleportManager {
             Location finalLocation = targetLocation.clone();
             player.teleportAsync(finalLocation).thenAccept(success -> {
                 if (success) {
-                    plugin.getMessageManager().sendTeleportSuccess(player, module);
                     if (onComplete != null) {
                         onComplete.run();
                     }

@@ -8,13 +8,12 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-public class TPAcceptCommand implements CommandExecutor {
+public class TPACommand implements CommandExecutor {
     private ArisCore plugin;
     
-    public TPAcceptCommand(ArisCore plugin) {
+    public TPACommand(ArisCore plugin) {
         this.plugin = plugin;
     }
     
@@ -27,51 +26,46 @@ public class TPAcceptCommand implements CommandExecutor {
         
         Player player = (Player) sender;
         
-        if (!player.hasPermission("ariscore.tpaccept")) {
+        if (!player.hasPermission("ariscore.tpa")) {
             plugin.getMessageManager().sendMessage(player, "no-permission", "tpa");
             return true;
         }
         
-        TeleportRequest request = null;
-        
-        if (args.length > 0) {
-            Player senderPlayer = Bukkit.getPlayer(args[0]);
-            if (senderPlayer != null) {
-                request = plugin.getTPAManager().getRequest(player, senderPlayer);
-            }
-        } else {
-            List<TeleportRequest> requests = plugin.getTPAManager().getRequestsForTarget(player);
-            if (!requests.isEmpty()) {
-                request = requests.get(0);
-            }
-        }
-        
-        if (request == null) {
-            plugin.getMessageManager().sendMessage(player, "no-requests-found", "tpa");
+        if (args.length < 1) {
+            plugin.getMessageManager().sendMessage(player, "tpa-usage", "tpa");
             return true;
         }
         
-        plugin.getTPAManager().removeRequest(request);
+        Player target = Bukkit.getPlayer(args[0]);
+        if (target == null) {
+            plugin.getMessageManager().sendMessage(player, "player-not-found", "tpa", "player", args[0]);
+            return true;
+        }
         
-        plugin.getMessageManager().sendMessage(player, "accepted-teleport", "tpa");
+        if (player.equals(target)) {
+            plugin.getMessageManager().sendMessage(player, "self-teleport", "tpa");
+            return true;
+        }
+        
+        if (!plugin.getTPAManager().canSendRequest(player, target)) {
+            return true;
+        }
+        
+        TeleportRequest request = new TeleportRequest(player, target, false);
+        plugin.getTPAManager().addRequest(request);
         
         Map<String, String> placeholders = new HashMap<>();
-        placeholders.put("player", player.getName());
-        plugin.getMessageManager().sendMessage(request.getSender(), "request-accepted", "tpa", placeholders);
+        placeholders.put("player", target.getName());
+        plugin.getMessageManager().sendMessage(player, "sent-request", "tpa", placeholders);
         
-        if (request.isHere()) {
-            plugin.getMessageManager().sendMessage(request.getSender(), "teleport-to-you", "tpa", placeholders);
-            plugin.getTeleportManager().startTeleport(request.getSender(), player.getLocation(), "tpa",
-                () -> {},
-                () -> {}
-            );
-        } else {
-            plugin.getTeleportManager().startTeleport(player, request.getSender().getLocation(), "tpa",
-                () -> {},
-                () -> {}
-            );
+        plugin.getMessageManager().sendMessage(target, "receive-request", "tpa", "player", player.getName());
+        
+        if (plugin.getTPAManager().isTPAutoEnabled(target)) {
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                target.performCommand("tpaccept " + player.getName());
+            }, 5L);
         }
         
         return true;
     }
-        }
+    }

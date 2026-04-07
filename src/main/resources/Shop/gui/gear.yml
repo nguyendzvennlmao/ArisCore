@@ -1,5 +1,6 @@
 title: "&8sʜᴏᴘ - ɢᴇᴀʀ"
 rows: 3
+currency: VAULT
 items:
   obsidian:
     slot: 9
@@ -8,7 +9,7 @@ items:
     price: 100
     amount: 1
     lore:
-      - "&fBuy Price: &#0bf52b%price% Shards"
+      - "&fBuy Price: &#0bf52b%price%"
   end-crystal:
     slot: 10
     material: END_CRYSTAL
@@ -16,7 +17,7 @@ items:
     price: 350
     amount: 1
     lore:
-      - "&fBuy Price: &#0bf52b%price% Shards"
+      - "&fBuy Price: &#0bf52b%price%"
   respawn_anchor:
     slot: 11
     material: RESPAWN_ANCHOR
@@ -24,7 +25,7 @@ items:
     price: 1000
     amount: 1
     lore:
-      - "&fBuy Price: &#0bf52b%price% Shards"
+      - "&fBuy Price: &#0bf52b%price%"
   glowstone:
     slot: 12
     material: GLOWSTONE
@@ -32,7 +33,7 @@ items:
     price: 100
     amount: 1
     lore:
-      - "&fBuy Price: &#0bf52b%price% Shards"
+      - "&fBuy Price: &#0bf52b%price%"
   totem-of-unfying:
     slot: 13
     material: TOTEM_OF_UNDYING
@@ -40,7 +41,7 @@ items:
     price: 1250
     amount: 1
     lore:
-      - "&fBuy Price: &#0bf52b%price% Shards"
+      - "&fBuy Price: &#0bf52b%price%"
   gear-ender-pearl:
     slot: 14
     material: ENDER_PEARL
@@ -48,7 +49,7 @@ items:
     price: 75
     amount: 1
     lore:
-      - "&fBuy Price: &#0bf52b%price% Shards"
+      - "&fBuy Price: &#0bf52b%price%"
   golden-apple:
     slot: 15
     material: GOLDEN_APPLE
@@ -56,7 +57,7 @@ items:
     price: 250
     amount: 1
     lore:
-      - "&fBuy Price: &#0bf52b%price% Shards"
+      - "&fBuy Price: &#0bf52b%price%"
   bottle-enchanting:
     slot: 16
     material: EXPERIENCE_BOTTLE
@@ -64,7 +65,7 @@ items:
     price: 100
     amount: 1
     lore:
-      - "&fBuy Price: &#0bf52b%price% Shards"
+      - "&fBuy Price: &#0bf52b%price%"
   arrow:
     slot: 17
     material: ARROW
@@ -72,4 +73,4 @@ items:
     price: 500
     amount: 1
     lore:
-      - "&fBuy Price: &#0bf52b%price% Shards"
+      - "&fBuy Price: &#0bf52b%price%"

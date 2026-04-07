@@ -1,5 +1,6 @@
 title: "&8sʜᴏᴘ - ꜱʜᴀʀᴅ"
 rows: 3
+currency: SHARDS
 items:
   common_key:
     slot: 2

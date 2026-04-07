@@ -60,7 +60,7 @@ public class PurchaseHandler {
         pendingPurchases.remove(player);
     }
     
-    private String getMessage(String path) {
+    private String getChatMessage(String path) {
         String prefix = messageConfig.getString("prefix", "&8[&aDonutShop&8] &r");
         String message = messageConfig.getString("message." + path, "");
         if (message.isEmpty()) return "";
@@ -71,16 +71,17 @@ public class PurchaseHandler {
         return ChatColor.translateAlternateColorCodes('&', messageConfig.getString("message.actionbar-" + path, ""));
     }
     
-    private void sendMessage(Player player, String path) {
-        String msg = getMessage(path);
-        String actionMsg = getActionBarMessage(path);
-        
+    private void sendShopMessage(Player player, String path) {
         boolean chatEnabled = shopConfig.getBoolean("messages.chat", true);
         boolean actionBarEnabled = shopConfig.getBoolean("messages.action-bar", true);
         
-        if (chatEnabled && !msg.isEmpty()) {
-            player.sendMessage(msg);
+        String chatMsg = getChatMessage(path);
+        String actionMsg = getActionBarMessage(path);
+        
+        if (chatEnabled && !chatMsg.isEmpty()) {
+            player.sendMessage(chatMsg);
         }
+        
         if (actionBarEnabled && !actionMsg.isEmpty()) {
             player.sendActionBar(actionMsg);
         }
@@ -100,7 +101,7 @@ public class PurchaseHandler {
         
         if (currencyType.equalsIgnoreCase("SHARDS")) {
             if (!plugin.getShardsManager().hasEnough(player, totalPrice)) {
-                sendMessage(player, "insufficient-funds");
+                sendShopMessage(player, "insufficient-funds");
                 return false;
             }
             
@@ -115,7 +116,7 @@ public class PurchaseHandler {
                 }.runTask(plugin);
             } else {
                 if (!plugin.getShardsManager().removeShards(player, totalPrice)) {
-                    sendMessage(player, "insufficient-funds");
+                    sendShopMessage(player, "insufficient-funds");
                     return false;
                 }
             }
@@ -126,7 +127,7 @@ public class PurchaseHandler {
             }
             
             if (!economy.has(player, totalPrice)) {
-                sendMessage(player, "insufficient-funds");
+                sendShopMessage(player, "insufficient-funds");
                 return false;
             }
             
@@ -134,7 +135,7 @@ public class PurchaseHandler {
         }
         
         if (player.getInventory().firstEmpty() == -1 && item.getCommand().isEmpty()) {
-            sendMessage(player, "inventory-full");
+            sendShopMessage(player, "inventory-full");
             
             if (currencyType.equalsIgnoreCase("SHARDS")) {
                 String placeCommand = getPlaceCommand("shards");
@@ -178,4 +179,4 @@ public class PurchaseHandler {
         
         return true;
     }
-    }
+                                                             }

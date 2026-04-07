@@ -1,8 +1,7 @@
 prefix: "&8[&aDonutShop&8] &r"
 
 message:
-  chat-no-permission: "&cBạn không có quyền!"
   chat-insufficient-funds: "&cBạn không đủ tiền!"
+  actionbar-insufficient-funds: "&cBạn không đủ tiền!"
   chat-inventory-full: "&cTúi đồ của bạn đã đầy! Hãy dọn chỗ trống để mua vật phẩm này."
-  chat-reload: "&aĐã tải lại cấu hình!"
-  chat-purchased: "&aBạn đã mua &e%amount%x %item% &avới giá &e%price%&a!"
+  actionbar-inventory-full: "&cTúi đồ đã đầy!"

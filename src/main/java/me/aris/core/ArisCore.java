@@ -20,6 +20,7 @@ import me.aris.core.gui.ConfirmGUI;
 import me.aris.core.gui.HomeGUI;
 import me.aris.core.gui.RTPGUI;
 import me.aris.core.gui.WarpGUI;
+import me.aris.core.hooks.PlaceholderHook;
 import me.aris.core.listeners.AFKListener;
 import me.aris.core.listeners.TeleportListener;
 import me.aris.core.managers.*;
@@ -56,6 +57,7 @@ public class ArisCore extends JavaPlugin {
     private ConfirmGUI confirmGUI;
     private RTPGUI rtpGUI;
     private ShopGUI shopGUI;
+    private PlaceholderHook placeholderHook;
 
     @Override
     public void onEnable() {
@@ -86,10 +88,29 @@ public class ArisCore extends JavaPlugin {
         rtpGUI = new RTPGUI(this);
         shopGUI = new ShopGUI(this);
         
+        if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
+            placeholderHook = new PlaceholderHook(this);
+            placeholderHook.register();
+            getLogger().info("PlaceholderAPI hook registered!");
+        }
+        
         registerCommands();
         registerListeners();
         
         getLogger().info(ChatColor.GREEN + "ArisCore has been enabled!");
+    }
+    
+    @Override
+    public void onDisable() {
+        if (placeholderHook != null) {
+            placeholderHook.unregister();
+        }
+        if (homeManager != null) homeManager.saveHomes();
+        if (warpManager != null) warpManager.saveWarps();
+        if (tpaManager != null) tpaManager.shutdown();
+        if (afkManager != null) afkManager.shutdown();
+        if (shardsManager != null) shardsManager.saveData();
+        getLogger().info("ArisCore has been disabled!");
     }
     
     private void printLogo() {
@@ -201,16 +222,6 @@ public class ArisCore extends JavaPlugin {
                 getLogger().warning("Failed to create " + path + ": " + e.getMessage());
             }
         }
-    }
-
-    @Override
-    public void onDisable() {
-        if (homeManager != null) homeManager.saveHomes();
-        if (warpManager != null) warpManager.saveWarps();
-        if (tpaManager != null) tpaManager.shutdown();
-        if (afkManager != null) afkManager.shutdown();
-        if (shardsManager != null) shardsManager.saveData();
-        getLogger().info("ArisCore has been disabled!");
     }
 
     private void registerCommands() {

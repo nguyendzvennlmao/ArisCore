@@ -164,8 +164,9 @@ public class ShopGUI implements Listener {
                         String materialName = entry.getValue().getString("items." + itemKey + ".material");
                         String displayName = entry.getValue().getString("items." + itemKey + ".displayname");
                         String command = entry.getValue().getString("items." + itemKey + ".command", "");
+                        String currency = entry.getValue().getString("currency", "VAULT");
                         
-                        ShopItem shopItem = new ShopItem(entry.getKey(), itemKey, price, materialName, displayName, command, amount);
+                        ShopItem shopItem = new ShopItem(entry.getKey(), itemKey, price, materialName, displayName, command, amount, currency);
                         quantitySelector.open(player, shopItem);
                         return;
                     }
@@ -219,4 +220,4 @@ public class ShopGUI implements Listener {
         
         player.openInventory(gui);
     }
-                                            }
+                }

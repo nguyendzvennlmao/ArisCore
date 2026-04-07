@@ -105,3 +105,15 @@ message:
   
   chat-tpauto-on-persistent: "&#09FF00You have tpauto on."
   actionbar-tpauto-on-persistent: "&#09FF00TPAuto ON"
+  
+  chat-blacklisted-world-sender: "&cYou cannot send TPA requests from a blacklisted world!"
+  actionbar-blacklisted-world-sender: "&cCannot send TPA from blacklisted world"
+  
+  chat-blacklisted-world-target: "&cYou cannot send TPA requests to players in blacklisted worlds!"
+  actionbar-blacklisted-world-target: "&cCannot send TPA to blacklisted world"
+  
+  chat-blacklisted-world-accept: "&cYou cannot accept TPA requests while in a blacklisted world!"
+  actionbar-blacklisted-world-accept: "&cCannot accept TPA in blacklisted world"
+  
+  chat-blacklisted-world-requester: "&cCannot accept TPA request - requester is in a blacklisted world!"
+  actionbar-blacklisted-world-requester: "&cCannot accept - requester in blacklisted world"

@@ -1,5 +1,6 @@
 title: "&8sʜᴏᴘ - ɴᴇᴛʜᴇʀ"
 rows: 3
+currency: VAULT
 items:
   blaze-rod:
     slot: 9
@@ -8,7 +9,7 @@ items:
     price: 150
     amount: 1
     lore:
-      - "&fBuy Price: &#0bf52b%price% Shards"
+      - "&fBuy Price: &#0bf52b%price%"
   glowstone-dust:
     slot: 10
     material: GLOWSTONE_DUST
@@ -16,7 +17,7 @@ items:
     price: 15
     amount: 1
     lore:
-      - "&fBuy Price: &#0bf52b%price% Shards"
+      - "&fBuy Price: &#0bf52b%price%"
   magma-cream:
     slot: 11
     material: MAGMA_CREAM
@@ -24,7 +25,7 @@ items:
     price: 15
     amount: 1
     lore:
-      - "&fBuy Price: &#0bf52b%price% Shards"
+      - "&fBuy Price: &#0bf52b%price%"
   ghast-tear:
     slot: 12
     material: GHAST_TEAR
@@ -32,7 +33,7 @@ items:
     price: 350
     amount: 1
     lore:
-      - "&fBuy Price: &#0bf52b%price% Shards"
+      - "&fBuy Price: &#0bf52b%price%"
   nether-quartz:
     slot: 13
     material: QUARTZ
@@ -40,7 +41,7 @@ items:
     price: 15
     amount: 1
     lore:
-      - "&fBuy Price: &#0bf52b%price% Shards"
+      - "&fBuy Price: &#0bf52b%price%"
   soul-sand:
     slot: 14
     material: SOUL_SAND
@@ -48,7 +49,7 @@ items:
     price: 15
     amount: 1
     lore:
-      - "&fBuy Price: &#0bf52b%price% Shards"
+      - "&fBuy Price: &#0bf52b%price%"
   magma-block:
     slot: 15
     material: MAGMA_BLOCK
@@ -56,7 +57,7 @@ items:
     price: 35
     amount: 1
     lore:
-      - "&fBuy Price: &#0bf52b%price% Shards"
+      - "&fBuy Price: &#0bf52b%price%"
   crying-obsidian:
     slot: 16
     material: CRYING_OBSIDIAN
@@ -64,7 +65,7 @@ items:
     price: 150
     amount: 1
     lore:
-      - "&fBuy Price: &#0bf52b%price% Shards"
+      - "&fBuy Price: &#0bf52b%price%"
   nether-wart:
     slot: 17
     material: NETHER_WART
@@ -72,4 +73,4 @@ items:
     price: 20
     amount: 1
     lore:
-      - "&fBuy Price: &#0bf52b%price% Shards"
+      - "&fBuy Price: &#0bf52b%price%"

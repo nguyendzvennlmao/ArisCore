@@ -126,6 +126,16 @@ public class QuantitySelectorGUI {
     }
     
     public void refresh(Player player, ShopItem item) {
-        open(player, item);
+        String title = shopConfig.getString("gui.quantity-selector.title", "&8ᴄᴏɴғɪʀᴍ ᴘᴜʀᴄʜᴀsᴇ");
+        int rows = shopConfig.getInt("gui.quantity-selector.rows", 3);
+        
+        Inventory gui = Bukkit.createInventory(null, rows * 9, translateColors(title));
+        
+        purchaseHandler.setPendingPurchase(player, item);
+        
+        addControlButtons(gui);
+        updatePreviewItem(gui, item);
+        
+        player.openInventory(gui);
     }
     }

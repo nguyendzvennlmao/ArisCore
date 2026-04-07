@@ -76,29 +76,24 @@ public class MessageManager {
         boolean chatEnabled = moduleConfig.getBoolean("messages.chat", true);
         boolean actionBarEnabled = moduleConfig.getBoolean("messages.action-bar", true);
         
-        String rawMessage = getRawMessage(module, path);
-        if (rawMessage.isEmpty()) return;
+        String chatMessage = getRawMessage(module, "chat-" + path);
+        String actionBarMessage = getRawMessage(module, "actionbar-" + path);
         
         for (Map.Entry<String, String> entry : placeholders.entrySet()) {
-            rawMessage = rawMessage.replace("%" + entry.getKey() + "%", entry.getValue());
+            chatMessage = chatMessage.replace("%" + entry.getKey() + "%", entry.getValue());
+            actionBarMessage = actionBarMessage.replace("%" + entry.getKey() + "%", entry.getValue());
         }
         
-        if (chatEnabled && !rawMessage.isEmpty()) {
+        if (chatEnabled && !chatMessage.isEmpty()) {
             if (path.equals("receive-request") || path.equals("receive-here-request")) {
-                sendClickableMessage(player, rawMessage);
+                sendClickableMessage(player, chatMessage);
             } else {
-                player.sendMessage(rawMessage);
+                player.sendMessage(chatMessage);
             }
         }
         
-        if (actionBarEnabled) {
-            String actionMessage = getRawMessage(module, "actionbar-" + path);
-            if (!actionMessage.isEmpty()) {
-                for (Map.Entry<String, String> entry : placeholders.entrySet()) {
-                    actionMessage = actionMessage.replace("%" + entry.getKey() + "%", entry.getValue());
-                }
-                player.sendActionBar(actionMessage);
-            }
+        if (actionBarEnabled && !actionBarMessage.isEmpty()) {
+            player.sendActionBar(actionBarMessage);
         }
     }
     
@@ -121,58 +116,63 @@ public class MessageManager {
     }
     
     public void sendTeleportCountdown(Player player, String module, int time) {
-        String rawMessage = getRawMessage(module, "teleport-countdown");
-        if (rawMessage.isEmpty()) return;
+        Map<String, String> placeholders = new HashMap<>();
+        placeholders.put("time", String.valueOf(time));
         
         FileConfiguration moduleConfig = getModuleConfig(module);
         boolean chatEnabled = moduleConfig.getBoolean("messages.chat", true);
         boolean actionBarEnabled = moduleConfig.getBoolean("messages.action-bar", true);
         
-        String message = rawMessage.replace("%time%", String.valueOf(time));
-        String actionMessage = getRawMessage(module, "actionbar-teleport-countdown").replace("%time%", String.valueOf(time));
+        String chatMessage = getRawMessage(module, "chat-teleport-countdown");
+        String actionBarMessage = getRawMessage(module, "actionbar-teleport-countdown");
         
-        if (chatEnabled && !message.isEmpty()) {
-            player.sendMessage(message);
+        for (Map.Entry<String, String> entry : placeholders.entrySet()) {
+            chatMessage = chatMessage.replace("%" + entry.getKey() + "%", entry.getValue());
+            actionBarMessage = actionBarMessage.replace("%" + entry.getKey() + "%", entry.getValue());
         }
-        if (actionBarEnabled && !actionMessage.isEmpty()) {
-            player.sendActionBar(actionMessage);
+        
+        if (chatEnabled && !chatMessage.isEmpty()) {
+            player.sendMessage(chatMessage);
+        }
+        
+        if (actionBarEnabled && !actionBarMessage.isEmpty()) {
+            player.sendActionBar(actionBarMessage);
         }
     }
     
     public void sendTeleportCancelled(Player player, String module, String reason) {
         String path = reason.equals("movement") ? "teleport-cancelled-movement" : "teleport-cancelled";
-        String rawMessage = getRawMessage(module, path);
-        if (rawMessage.isEmpty()) return;
         
         FileConfiguration moduleConfig = getModuleConfig(module);
         boolean chatEnabled = moduleConfig.getBoolean("messages.chat", true);
         boolean actionBarEnabled = moduleConfig.getBoolean("messages.action-bar", true);
         
-        String actionMessage = getRawMessage(module, "actionbar-" + path);
+        String chatMessage = getRawMessage(module, "chat-" + path);
+        String actionBarMessage = getRawMessage(module, "actionbar-" + path);
         
-        if (chatEnabled && !rawMessage.isEmpty()) {
-            player.sendMessage(rawMessage);
+        if (chatEnabled && !chatMessage.isEmpty()) {
+            player.sendMessage(chatMessage);
         }
-        if (actionBarEnabled && !actionMessage.isEmpty()) {
-            player.sendActionBar(actionMessage);
+        
+        if (actionBarEnabled && !actionBarMessage.isEmpty()) {
+            player.sendActionBar(actionBarMessage);
         }
     }
     
     public void sendTeleportSuccess(Player player, String module) {
-        String rawMessage = getRawMessage(module, "teleport-success");
-        if (rawMessage.isEmpty()) return;
-        
         FileConfiguration moduleConfig = getModuleConfig(module);
         boolean chatEnabled = moduleConfig.getBoolean("messages.chat", true);
         boolean actionBarEnabled = moduleConfig.getBoolean("messages.action-bar", true);
         
-        String actionMessage = getRawMessage(module, "actionbar-teleport-success");
+        String chatMessage = getRawMessage(module, "chat-teleport-success");
+        String actionBarMessage = getRawMessage(module, "actionbar-teleport-success");
         
-        if (chatEnabled && !rawMessage.isEmpty()) {
-            player.sendMessage(rawMessage);
+        if (chatEnabled && !chatMessage.isEmpty()) {
+            player.sendMessage(chatMessage);
         }
-        if (actionBarEnabled && !actionMessage.isEmpty()) {
-            player.sendActionBar(actionMessage);
+        
+        if (actionBarEnabled && !actionBarMessage.isEmpty()) {
+            player.sendActionBar(actionBarMessage);
         }
     }
     
@@ -183,4 +183,4 @@ public class MessageManager {
         }
         return new YamlConfiguration();
     }
-            }
+    }

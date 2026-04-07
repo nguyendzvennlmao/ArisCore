@@ -51,4 +51,4 @@ public class CategoryManager {
         categoryConfigs.clear();
         loadConfigs();
     }
-              }
+}

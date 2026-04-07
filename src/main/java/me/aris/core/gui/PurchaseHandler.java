@@ -103,7 +103,9 @@ public class PurchaseHandler {
                     plugin.getShardsManager().addShards(player, totalPrice);
                 }
             } else {
-                economy.depositPlayer(player, totalPrice);
+                if (economy != null) {
+                    economy.depositPlayer(player, totalPrice);
+                }
             }
             return false;
         }
@@ -130,4 +132,4 @@ public class PurchaseHandler {
         
         return true;
     }
-    }
+                        }

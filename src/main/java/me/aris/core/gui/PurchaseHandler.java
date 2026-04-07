@@ -60,36 +60,25 @@ public class PurchaseHandler {
         pendingPurchases.remove(player);
     }
     
-    private String getChatMessage(String path) {
-        String prefix = messageConfig.getString("prefix", "&8[&aDonutShop&8] &r");
-        String message = messageConfig.getString("message." + path, "");
-        if (message.isEmpty()) return "";
-        return ChatColor.translateAlternateColorCodes('&', prefix + message);
-    }
-    
-    private String getActionBarMessage(String path) {
-        return ChatColor.translateAlternateColorCodes('&', messageConfig.getString("message.actionbar-" + path, ""));
-    }
-    
     private void sendShopMessage(Player player, String path) {
         boolean chatEnabled = shopConfig.getBoolean("messages.chat", true);
         boolean actionBarEnabled = shopConfig.getBoolean("messages.action-bar", true);
         
-        String chatMsg = getChatMessage(path);
-        String actionMsg = getActionBarMessage(path);
+        String prefix = messageConfig.getString("prefix", "&8[&aDonutShop&8] &r");
+        prefix = ChatColor.translateAlternateColorCodes('&', prefix);
         
-        plugin.getLogger().info("Shop message - chatEnabled: " + chatEnabled + ", actionBarEnabled: " + actionBarEnabled);
-        plugin.getLogger().info("Chat message: " + chatMsg);
-        plugin.getLogger().info("Action message: " + actionMsg);
+        String chatMsg = messageConfig.getString("message.chat-" + path, "");
+        String actionMsg = messageConfig.getString("message.actionbar-" + path, "");
         
-        if (chatEnabled && chatMsg != null && !chatMsg.isEmpty()) {
-            player.sendMessage(chatMsg);
-            plugin.getLogger().info("Sent chat message to " + player.getName());
+        chatMsg = ChatColor.translateAlternateColorCodes('&', chatMsg);
+        actionMsg = ChatColor.translateAlternateColorCodes('&', actionMsg);
+        
+        if (chatEnabled && !chatMsg.isEmpty()) {
+            player.sendMessage(prefix + chatMsg);
         }
         
-        if (actionBarEnabled && actionMsg != null && !actionMsg.isEmpty()) {
+        if (actionBarEnabled && !actionMsg.isEmpty()) {
             player.sendActionBar(actionMsg);
-            plugin.getLogger().info("Sent action bar to " + player.getName());
         }
     }
     

@@ -1,5 +1,6 @@
 title: "&8sʜᴏᴘ - ғᴏᴏᴅ"
 rows: 3
+currency: VAULT
 items:
   potato:
     slot: 9
@@ -8,7 +9,7 @@ items:
     price: 25
     amount: 1
     lore:
-      - "&fBuy Price: &#0bf52b%price% Shards"
+      - "&fBuy Price: &#0bf52b%price%"
   sweet-barries:
     slot: 10
     material: SWEET_BERRIES
@@ -16,7 +17,7 @@ items:
     price: 15
     amount: 1
     lore:
-      - "&fBuy Price: &#0bf52b%price% Shards"
+      - "&fBuy Price: &#0bf52b%price%"
   melon-slice:
     slot: 11
     material: MELON_SLICE
@@ -24,7 +25,7 @@ items:
     price: 10
     amount: 1
     lore:
-      - "&fBuy Price: &#0bf52b%price% Shards"
+      - "&fBuy Price: &#0bf52b%price%"
   carrot:
     slot: 12
     material: CARROT
@@ -32,7 +33,7 @@ items:
     price: 25
     amount: 1
     lore:
-      - "&fBuy Price: &#0bf52b%price% Shards"
+      - "&fBuy Price: &#0bf52b%price%"
   apple:
     slot: 13
     material: APPLE
@@ -40,7 +41,7 @@ items:
     price: 25
     amount: 1
     lore:
-      - "&fBuy Price: &#0bf52b%price% Shards"
+      - "&fBuy Price: &#0bf52b%price%"
   cooked-chicken:
     slot: 14
     material: COOKED_CHICKEN
@@ -48,7 +49,7 @@ items:
     price: 30
     amount: 1
     lore:
-      - "&fBuy Price: &#0bf52b%price% Shards"
+      - "&fBuy Price: &#0bf52b%price%"
   food-steak:
     slot: 15
     material: COOKED_BEEF
@@ -56,7 +57,7 @@ items:
     price: 35
     amount: 1
     lore:
-      - "&fBuy Price: &#0bf52b%price% Shards"
+      - "&fBuy Price: &#0bf52b%price%"
   golden-carrot:
     slot: 16
     material: GOLDEN_CARROT
@@ -64,7 +65,7 @@ items:
     price: 50
     amount: 1
     lore:
-      - "&fBuy Price: &#0bf52b%price% Shards"
+      - "&fBuy Price: &#0bf52b%price%"
   food-golden-apple:
     slot: 17
     material: GOLDEN_APPLE
@@ -72,4 +73,4 @@ items:
     price: 250
     amount: 1
     lore:
-      - "&fBuy Price: &#0bf52b%price% Shards"
+      - "&fBuy Price: &#0bf52b%price%"

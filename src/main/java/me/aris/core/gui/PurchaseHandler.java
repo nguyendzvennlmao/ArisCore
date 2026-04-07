@@ -78,12 +78,18 @@ public class PurchaseHandler {
         String chatMsg = getChatMessage(path);
         String actionMsg = getActionBarMessage(path);
         
-        if (chatEnabled && !chatMsg.isEmpty()) {
+        plugin.getLogger().info("Shop message - chatEnabled: " + chatEnabled + ", actionBarEnabled: " + actionBarEnabled);
+        plugin.getLogger().info("Chat message: " + chatMsg);
+        plugin.getLogger().info("Action message: " + actionMsg);
+        
+        if (chatEnabled && chatMsg != null && !chatMsg.isEmpty()) {
             player.sendMessage(chatMsg);
+            plugin.getLogger().info("Sent chat message to " + player.getName());
         }
         
-        if (actionBarEnabled && !actionMsg.isEmpty()) {
+        if (actionBarEnabled && actionMsg != null && !actionMsg.isEmpty()) {
             player.sendActionBar(actionMsg);
+            plugin.getLogger().info("Sent action bar to " + player.getName());
         }
     }
     
@@ -179,4 +185,4 @@ public class PurchaseHandler {
         
         return true;
     }
-                                                             }
+        }

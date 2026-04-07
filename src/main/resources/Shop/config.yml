@@ -1,5 +1,4 @@
 enabled: true
-currency: SHARDS
 
 messages:
   chat: true
@@ -7,8 +6,9 @@ messages:
 
 currencies:
   shards:
-    balance-placeholder: "%arisshards_balance%"
+    type: "SHARDS"
     take-command: "shards take %player% %price%"
+    place-command: "shards give %player% %price%"
 
 main-menu:
   title: "&8ѕʜᴏᴘ"
@@ -93,13 +93,3 @@ gui:
     displayname: "&#e00202ʙᴀᴄᴋ"
     lore:
       - "&fClick to return"
-  next-page:
-    material: ARROW
-    displayname: "&#f00f0cɴᴇxᴛ"
-    lore:
-      - "&fClick to go to next page"
-  last-page:
-    material: ARROW
-    displayname: "&#f00f0cʙᴀᴄᴋ"
-    lore:
-      - "&fClick to go to last page"

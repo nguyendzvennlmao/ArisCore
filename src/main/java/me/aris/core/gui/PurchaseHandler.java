@@ -3,8 +3,10 @@ package me.aris.core.shop;
 import me.aris.core.ArisCore;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -17,6 +19,7 @@ public class PurchaseHandler {
     private Economy economy;
     private Map<Player, ShopItem> pendingPurchases;
     private FileConfiguration shopConfig;
+    private FileConfiguration messageConfig;
     
     public PurchaseHandler(ArisCore plugin) {
         this.plugin = plugin;
@@ -24,9 +27,16 @@ public class PurchaseHandler {
         
         File configFile = new File(plugin.getDataFolder(), "Shop/config.yml");
         if (configFile.exists()) {
-            shopConfig = org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(configFile);
+            shopConfig = YamlConfiguration.loadConfiguration(configFile);
         } else {
-            shopConfig = new org.bukkit.configuration.file.YamlConfiguration();
+            shopConfig = new YamlConfiguration();
+        }
+        
+        File messageFile = new File(plugin.getDataFolder(), "Shop/message.yml");
+        if (messageFile.exists()) {
+            messageConfig = YamlConfiguration.loadConfiguration(messageFile);
+        } else {
+            messageConfig = new YamlConfiguration();
         }
         
         if (Bukkit.getPluginManager().getPlugin("Vault") != null) {
@@ -50,6 +60,32 @@ public class PurchaseHandler {
         pendingPurchases.remove(player);
     }
     
+    private String getMessage(String path) {
+        String prefix = messageConfig.getString("prefix", "&8[&aDonutShop&8] &r");
+        String message = messageConfig.getString("message." + path, "");
+        if (message.isEmpty()) return "";
+        return ChatColor.translateAlternateColorCodes('&', prefix + message);
+    }
+    
+    private String getActionBarMessage(String path) {
+        return ChatColor.translateAlternateColorCodes('&', messageConfig.getString("message.actionbar-" + path, ""));
+    }
+    
+    private void sendMessage(Player player, String path) {
+        String msg = getMessage(path);
+        String actionMsg = getActionBarMessage(path);
+        
+        boolean chatEnabled = shopConfig.getBoolean("messages.chat", true);
+        boolean actionBarEnabled = shopConfig.getBoolean("messages.action-bar", true);
+        
+        if (chatEnabled && !msg.isEmpty()) {
+            player.sendMessage(msg);
+        }
+        if (actionBarEnabled && !actionMsg.isEmpty()) {
+            player.sendActionBar(actionMsg);
+        }
+    }
+    
     private String getTakeCommand(String currencyType) {
         return shopConfig.getString("currencies." + currencyType.toLowerCase() + ".take-command", "");
     }
@@ -64,7 +100,7 @@ public class PurchaseHandler {
         
         if (currencyType.equalsIgnoreCase("SHARDS")) {
             if (!plugin.getShardsManager().hasEnough(player, totalPrice)) {
-                plugin.getMessageManager().sendMessage(player, "insufficient-funds", "shop");
+                sendMessage(player, "insufficient-funds");
                 return false;
             }
             
@@ -79,18 +115,18 @@ public class PurchaseHandler {
                 }.runTask(plugin);
             } else {
                 if (!plugin.getShardsManager().removeShards(player, totalPrice)) {
-                    plugin.getMessageManager().sendMessage(player, "insufficient-funds", "shop");
+                    sendMessage(player, "insufficient-funds");
                     return false;
                 }
             }
         } else {
             if (economy == null) {
-                player.sendMessage("§cVault economy not found!");
+                player.sendMessage(ChatColor.RED + "Vault economy not found!");
                 return false;
             }
             
             if (!economy.has(player, totalPrice)) {
-                plugin.getMessageManager().sendMessage(player, "insufficient-funds", "shop");
+                sendMessage(player, "insufficient-funds");
                 return false;
             }
             
@@ -98,7 +134,7 @@ public class PurchaseHandler {
         }
         
         if (player.getInventory().firstEmpty() == -1 && item.getCommand().isEmpty()) {
-            plugin.getMessageManager().sendMessage(player, "inventory-full", "shop");
+            sendMessage(player, "inventory-full");
             
             if (currencyType.equalsIgnoreCase("SHARDS")) {
                 String placeCommand = getPlaceCommand("shards");
@@ -140,12 +176,6 @@ public class PurchaseHandler {
             player.getInventory().addItem(stack);
         }
         
-        Map<String, String> placeholders = new HashMap<>();
-        placeholders.put("amount", String.valueOf(item.getAmount()));
-        placeholders.put("item", item.getDisplayName());
-        placeholders.put("price", String.valueOf(totalPrice));
-        plugin.getMessageManager().sendMessage(player, "purchased", "shop", placeholders);
-        
         return true;
     }
-                                   }
+    }

@@ -74,4 +74,4 @@ public class AFKMessageManager {
         placeholders.put(placeholder, value);
         sendMessage(player, path, placeholders);
     }
-  }
+        }

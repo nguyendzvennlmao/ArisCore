@@ -1,0 +1,18 @@
+enabled: true
+
+messages:
+  chat: true
+  action-bar: true
+
+teleport:
+  countdown: 5
+  allowed-walk-range: 0.1
+  cancel-on-move: true
+  cancel-on-damage: true
+
+on-join:
+  enabled: false
+  first-join-only: true
+
+on-death:
+  enabled: true

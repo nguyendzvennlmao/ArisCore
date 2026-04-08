@@ -1,0 +1,3 @@
+sounds:
+  sell-success: ENTITY_PLAYER_LEVELUP
+  error: ENTITY_VILLAGER_NO

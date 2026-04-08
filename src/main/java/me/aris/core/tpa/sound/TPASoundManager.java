@@ -79,4 +79,4 @@ public class TPASoundManager {
     public void playError(Player player) {
         playSound(player, "error");
     }
-  }
+                  }

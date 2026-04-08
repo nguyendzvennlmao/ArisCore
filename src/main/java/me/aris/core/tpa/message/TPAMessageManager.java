@@ -16,13 +16,15 @@ import java.util.regex.Pattern;
 public class TPAMessageManager {
     private ArisCore plugin;
     private FileConfiguration messageConfig;
-    private FileConfiguration moduleConfig;
+    private boolean chatEnabled;
+    private boolean actionBarEnabled;
     private static final Pattern HEX_PATTERN = Pattern.compile("&#([A-Fa-f0-9]{6})");
     
     public TPAMessageManager(ArisCore plugin) {
         this.plugin = plugin;
-        this.messageConfig = plugin.getConfigManager().getModuleMessage("tpa");
-        this.moduleConfig = plugin.getConfigManager().getModuleConfig("tpa");
+        this.messageConfig = plugin.getTPAConfigManager().getMessageConfig();
+        this.chatEnabled = plugin.getTPAConfigManager().isChatEnabled();
+        this.actionBarEnabled = plugin.getTPAConfigManager().isActionBarEnabled();
     }
     
     private String translateColors(String message) {
@@ -52,9 +54,6 @@ public class TPAMessageManager {
     
     public void sendMessage(Player player, String path, Map<String, String> placeholders) {
         if (player == null) return;
-        
-        boolean chatEnabled = moduleConfig.getBoolean("messages.chat", true);
-        boolean actionBarEnabled = moduleConfig.getBoolean("messages.action-bar", true);
         
         String chatMessage = getRawMessage("chat-" + path);
         String actionBarMessage = getRawMessage("actionbar-" + path);
@@ -96,4 +95,4 @@ public class TPAMessageManager {
         placeholders.put(placeholder, value);
         sendMessage(player, path, placeholders);
     }
-                                                 }
+            }

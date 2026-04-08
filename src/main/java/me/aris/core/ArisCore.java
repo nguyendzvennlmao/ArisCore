@@ -22,7 +22,7 @@ import me.aris.core.gui.*;
 import me.aris.core.listeners.AFKListener;
 import me.aris.core.listeners.TeleportListener;
 import me.aris.core.managers.*;
-import me.aris.core.shop.*;
+import me.aris.core.shop.ShopGUI;
 import me.aris.core.teleport.*;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -319,4 +319,4 @@ public class ArisCore extends JavaPlugin {
     public RTPGUI getRTPGUI() { return rtpGUI; }
     public ShopGUI getShopGUI() { return shopGUI; }
     public SellGUI getSellGUI() { return sellGUI; }
-}
+    }

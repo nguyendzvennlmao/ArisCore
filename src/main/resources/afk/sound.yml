@@ -1,0 +1,9 @@
+sounds:
+  afk-on: BLOCK_BEACON_ACTIVATE
+  afk-off: BLOCK_BEACON_DEACTIVATE
+  countdown: ENTITY_ENDERMAN_TELEPORT
+  teleport-success: ENTITY_PLAYER_LEVELUP
+  teleport-cancel: ENTITY_ITEM_BREAK
+  afk-location-set: BLOCK_NOTE_BLOCK_PLING
+  afk-location-delete: ENTITY_ITEM_BREAK
+  error: ENTITY_VILLAGER_NO

@@ -11,8 +11,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
-import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -29,12 +29,12 @@ public class SellGUI implements Listener {
     private FileConfiguration pricesConfig;
     private Map<Material, Double> prices;
     private Economy economy;
-    private Map<Player, Double> pendingTotals;
+    private Map<Player, Inventory> openSellGUIs;
     
     public SellGUI(ArisCore plugin) {
         this.plugin = plugin;
         this.prices = new HashMap<>();
-        this.pendingTotals = new HashMap<>();
+        this.openSellGUIs = new HashMap<>();
         loadConfigs();
         setupEconomy();
     }
@@ -102,7 +102,6 @@ public class SellGUI implements Listener {
     private double calculateTotalPrice(Inventory gui) {
         double total = 0;
         for (int i = 0; i < gui.getSize(); i++) {
-            if (i == 49 || i == 50) continue;
             ItemStack item = gui.getItem(i);
             if (item != null && !item.getType().isAir()) {
                 double price = prices.getOrDefault(item.getType(), 0.0);
@@ -114,7 +113,9 @@ public class SellGUI implements Listener {
         return total;
     }
     
-    private void updateSellButton(Inventory gui, double totalPrice) {
+    private void updateSellButton(Inventory gui) {
+        double totalPrice = calculateTotalPrice(gui);
+        
         int sellButtonSlot = guiConfig.getInt("sell-all-button.slot", 49);
         String sellButtonMaterial = guiConfig.getString("sell-all-button.material", "LIME_STAINED_GLASS_PANE");
         String sellButtonName = guiConfig.getString("sell-all-button.name", "&a&lBÁN TẤT CẢ");
@@ -139,6 +140,16 @@ public class SellGUI implements Listener {
         sellMeta.setLore(coloredSellLore);
         sellButton.setItemMeta(sellMeta);
         gui.setItem(sellButtonSlot, sellButton);
+    }
+    
+    private void returnItemsToPlayer(Player player, Inventory gui) {
+        for (int i = 0; i < gui.getSize(); i++) {
+            if (i == 49 || i == 50) continue;
+            ItemStack item = gui.getItem(i);
+            if (item != null && !item.getType().isAir()) {
+                player.getInventory().addItem(item.clone());
+            }
+        }
     }
     
     public void openSellGUI(Player player) {
@@ -197,7 +208,24 @@ public class SellGUI implements Listener {
         closeButton.setItemMeta(closeMeta);
         gui.setItem(closeButtonSlot, closeButton);
         
+        openSellGUIs.put(player, gui);
         player.openInventory(gui);
+        
+        updateSellButton(gui);
+    }
+    
+    @EventHandler
+    public void onInventoryClose(InventoryCloseEvent event) {
+        if (!(event.getPlayer() instanceof Player)) return;
+        Player player = (Player) event.getPlayer();
+        Inventory gui = event.getInventory();
+        String title = event.getView().getTitle();
+        String guiTitle = translateColors(guiConfig.getString("title", "&8Sell Vật phẩm giá ít ăn nhiều"));
+        
+        if (title.equals(guiTitle)) {
+            returnItemsToPlayer(player, gui);
+            openSellGUIs.remove(player);
+        }
     }
     
     @EventHandler
@@ -226,8 +254,7 @@ public class SellGUI implements Listener {
         
         if (event.getSlot() != sellButtonSlot && event.getSlot() != closeButtonSlot) {
             plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
-                double total = calculateTotalPrice(event.getInventory());
-                updateSellButton(event.getInventory(), total);
+                updateSellButton(event.getInventory());
             }, 1L);
         }
     }
@@ -252,14 +279,14 @@ public class SellGUI implements Listener {
         }
         
         plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
-            double total = calculateTotalPrice(event.getInventory());
-            updateSellButton(event.getInventory(), total);
+            updateSellButton(event.getInventory());
         }, 1L);
     }
     
     private void sellItemsInGUI(Player player, Inventory gui) {
         if (economy == null) {
             player.sendMessage(ChatColor.RED + "Economy system not found!");
+            returnItemsToPlayer(player, gui);
             return;
         }
         
@@ -297,6 +324,23 @@ public class SellGUI implements Listener {
         Map<String, String> placeholders = new HashMap<>();
         placeholders.put("total_items", String.valueOf(totalItems));
         placeholders.put("total_price", formatPrice(totalPrice));
-        plugin.getMessageManager().sendMessage(player, "sold-all", "sell", placeholders);
+        
+        boolean chatEnabled = sellConfig.getBoolean("messages.chat", true);
+        boolean actionBarEnabled = sellConfig.getBoolean("messages.action-bar", true);
+        
+        String prefix = "&8[&6Sell&8] &r";
+        String chatMsg = "&aBạn đã bán &e%total_items% vật phẩm &avới tổng giá &6%total_price%&a!";
+        String actionMsg = "&aĐã bán %total_items% vật phẩm với giá %total_price%";
+        
+        chatMsg = chatMsg.replace("%total_items%", placeholders.get("total_items")).replace("%total_price%", placeholders.get("total_price"));
+        actionMsg = actionMsg.replace("%total_items%", placeholders.get("total_items")).replace("%total_price%", placeholders.get("total_price"));
+        
+        if (chatEnabled) {
+            player.sendMessage(translateColors(prefix + chatMsg));
+        }
+        
+        if (actionBarEnabled) {
+            player.sendActionBar(translateColors(actionMsg));
+        }
     }
-                }
+            }

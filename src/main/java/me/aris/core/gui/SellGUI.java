@@ -12,10 +12,12 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,10 +29,12 @@ public class SellGUI implements Listener {
     private FileConfiguration pricesConfig;
     private Map<Material, Double> prices;
     private Economy economy;
+    private Map<Player, Double> pendingTotals;
     
     public SellGUI(ArisCore plugin) {
         this.plugin = plugin;
         this.prices = new HashMap<>();
+        this.pendingTotals = new HashMap<>();
         loadConfigs();
         setupEconomy();
     }
@@ -95,6 +99,48 @@ public class SellGUI implements Listener {
         return String.format("%.0f", price);
     }
     
+    private double calculateTotalPrice(Inventory gui) {
+        double total = 0;
+        for (int i = 0; i < gui.getSize(); i++) {
+            if (i == 49 || i == 50) continue;
+            ItemStack item = gui.getItem(i);
+            if (item != null && !item.getType().isAir()) {
+                double price = prices.getOrDefault(item.getType(), 0.0);
+                if (price > 0) {
+                    total += price * item.getAmount();
+                }
+            }
+        }
+        return total;
+    }
+    
+    private void updateSellButton(Inventory gui, double totalPrice) {
+        int sellButtonSlot = guiConfig.getInt("sell-all-button.slot", 49);
+        String sellButtonMaterial = guiConfig.getString("sell-all-button.material", "LIME_STAINED_GLASS_PANE");
+        String sellButtonName = guiConfig.getString("sell-all-button.name", "&a&lBÁN TẤT CẢ");
+        List<String> sellButtonLore = guiConfig.getStringList("sell-all-button.lore");
+        
+        Material sellMat;
+        try {
+            sellMat = Material.valueOf(sellButtonMaterial);
+        } catch (IllegalArgumentException e) {
+            sellMat = Material.LIME_STAINED_GLASS_PANE;
+        }
+        
+        ItemStack sellButton = new ItemStack(sellMat);
+        ItemMeta sellMeta = sellButton.getItemMeta();
+        sellMeta.setDisplayName(translateColors(sellButtonName));
+        
+        List<String> coloredSellLore = new ArrayList<>();
+        for (String line : sellButtonLore) {
+            String coloredLine = line.replace("%total_price%", formatPrice(totalPrice));
+            coloredSellLore.add(translateColors(coloredLine));
+        }
+        sellMeta.setLore(coloredSellLore);
+        sellButton.setItemMeta(sellMeta);
+        gui.setItem(sellButtonSlot, sellButton);
+    }
+    
     public void openSellGUI(Player player) {
         String title = guiConfig.getString("title", "&8Sell Vật phẩm giá ít ăn nhiều");
         int rows = guiConfig.getInt("rows", 6);
@@ -117,9 +163,10 @@ public class SellGUI implements Listener {
         ItemMeta sellMeta = sellButton.getItemMeta();
         sellMeta.setDisplayName(translateColors(sellButtonName));
         
-        List<String> coloredSellLore = new java.util.ArrayList<>();
+        List<String> coloredSellLore = new ArrayList<>();
         for (String line : sellButtonLore) {
-            coloredSellLore.add(translateColors(line));
+            String coloredLine = line.replace("%total_price%", "0");
+            coloredSellLore.add(translateColors(coloredLine));
         }
         sellMeta.setLore(coloredSellLore);
         sellButton.setItemMeta(sellMeta);
@@ -141,7 +188,7 @@ public class SellGUI implements Listener {
         ItemMeta closeMeta = closeButton.getItemMeta();
         closeMeta.setDisplayName(translateColors(closeButtonName));
         if (closeButtonLore != null && !closeButtonLore.isEmpty()) {
-            List<String> coloredCloseLore = new java.util.ArrayList<>();
+            List<String> coloredCloseLore = new ArrayList<>();
             for (String line : closeButtonLore) {
                 coloredCloseLore.add(translateColors(line));
             }
@@ -174,6 +221,14 @@ public class SellGUI implements Listener {
             } else if (event.getSlot() == closeButtonSlot) {
                 player.closeInventory();
             }
+            return;
+        }
+        
+        if (event.getSlot() != sellButtonSlot && event.getSlot() != closeButtonSlot) {
+            plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+                double total = calculateTotalPrice(event.getInventory());
+                updateSellButton(event.getInventory(), total);
+            }, 1L);
         }
     }
     
@@ -195,6 +250,11 @@ public class SellGUI implements Listener {
                 return;
             }
         }
+        
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+            double total = calculateTotalPrice(event.getInventory());
+            updateSellButton(event.getInventory(), total);
+        }, 1L);
     }
     
     private void sellItemsInGUI(Player player, Inventory gui) {
@@ -239,4 +299,4 @@ public class SellGUI implements Listener {
         placeholders.put("total_price", formatPrice(totalPrice));
         plugin.getMessageManager().sendMessage(player, "sold-all", "sell", placeholders);
     }
-            }
+                }

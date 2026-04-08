@@ -1,0 +1,27 @@
+title: "&8Sell Vật phẩm giá ít ăn nhiều"
+rows: 6
+
+item-display:
+  name: "&6%item%"
+  lore:
+    - "&7Số lượng: &e%amount%"
+    - "&7Giá mỗi món: &6%price%"
+    - ""
+    - "&7Tổng giá: &6%total_price%"
+
+sell-all-button:
+  slot: 49
+  material: LIME_STAINED_GLASS_PANE
+  name: "&a&lBÁN TẤT CẢ"
+  lore:
+    - "&7Tổng số vật phẩm: &e%total_items%"
+    - "&7Tổng giá trị: &6%total_price%"
+    - ""
+    - "&eClick để bán tất cả!"
+
+close-button:
+  slot: 50
+  material: BARRIER
+  name: "&c&lĐÓNG"
+  lore:
+    - "&7Click để đóng cửa sổ"

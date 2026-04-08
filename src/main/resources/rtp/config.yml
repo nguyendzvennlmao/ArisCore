@@ -1,0 +1,6 @@
+enabled: true
+cooldown-seconds: 60
+max-retries: 50
+messages:
+  chat: true
+  action-bar: true

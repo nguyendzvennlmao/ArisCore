@@ -53,7 +53,7 @@ public final class ArisCore extends JavaPlugin {
         getCommand("tpahere").setExecutor(new TPAHereCommand(this));
         getCommand("tpaccept").setExecutor(new TPAcceptCommand(this));
         getCommand("tpadeny").setExecutor(new TPDenyCommand(this));
-        getCommand("tpacancel").setExecutor(new TPACancelCommand(this));
+        getCommand("tpacancel").setExecutor(new TPAcancelCommand(this));
         getCommand("tpauto").setExecutor(new TPAAutoCommand(this));
         getCommand("tpatoggle").setExecutor(new TPAToggleCommand(this));
         getCommand("tpaheretoggle").setExecutor(new TPAHereToggleCommand(this));
@@ -67,23 +67,23 @@ public final class ArisCore extends JavaPlugin {
         return tpaManager;
     }
     
-    public TPAMessageManager getMessageManager() {
+    public TPAMessageManager getTPAMessageManager() {
         return messageManager;
     }
     
-    public TPASoundManager getSoundManager() {
+    public TPASoundManager getTPASoundManager() {
         return soundManager;
     }
     
-    public TPATeleportManager getTeleportManager() {
+    public TPATeleportManager getTPATeleportManager() {
         return teleportManager;
     }
     
-    public TPAConfigManager getConfigManager() {
+    public TPAConfigManager getTPAConfigManager() {
         return configManager;
     }
     
     public TPAGUI getTPAGUI() {
         return tpaGUI;
     }
-                }
+            }

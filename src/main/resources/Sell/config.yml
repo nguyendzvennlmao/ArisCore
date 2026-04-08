@@ -1,0 +1,18 @@
+enabled: true
+
+messages:
+  chat: true
+  action-bar: true
+
+axe-sell:
+  enabled: true
+  item: DIAMOND_AXE
+  name: "&6&lAxeSell"
+  lore:
+    - "&7Dùng rìu này để bán vật phẩm"
+    - "&7từ rương ngay lập tức!"
+  durability: false
+
+gui:
+  title: "&8Sell Vật phẩm giá ít ăn nhiều"
+  rows: 6

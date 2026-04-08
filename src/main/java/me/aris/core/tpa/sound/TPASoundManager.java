@@ -11,10 +11,11 @@ public class TPASoundManager {
     
     public TPASoundManager(ArisCore plugin) {
         this.plugin = plugin;
-        this.soundConfig = plugin.getConfigManager().getModuleSound("tpa");
+        this.soundConfig = plugin.getTPAConfigManager().getSoundConfig();
     }
     
     private Sound getSound(String path) {
+        if (soundConfig == null) return Sound.ENTITY_EXPERIENCE_ORB_PICKUP;
         String soundName = soundConfig.getString("sounds." + path, "ENTITY_EXPERIENCE_ORB_PICKUP");
         try {
             return Sound.valueOf(soundName);
@@ -79,4 +80,4 @@ public class TPASoundManager {
     public void playError(Player player) {
         playSound(player, "error");
     }
-                  }
+}

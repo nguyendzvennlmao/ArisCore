@@ -1,0 +1,19 @@
+enabled: true
+
+messages:
+  chat: true
+  action-bar: true
+
+request:
+  expiration-time: 120
+  cooldown: 30
+  daily-limit: -1
+
+blacklisted-worlds:
+  enabled: true
+  worlds:
+    - "world_nether"
+    - "world_the_end"
+
+gui:
+  enabled: true

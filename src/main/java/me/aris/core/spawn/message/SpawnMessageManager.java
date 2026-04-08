@@ -74,4 +74,4 @@ public class SpawnMessageManager {
         placeholders.put(placeholder, value);
         sendMessage(player, path, placeholders);
     }
-                                                                        }
+    }

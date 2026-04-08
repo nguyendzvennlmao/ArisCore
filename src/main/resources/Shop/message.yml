@@ -1,7 +1,0 @@
-prefix: "&8[&aDonutShop&8] &r"
-
-message:
-  chat-insufficient-funds: "&cBạn không đủ tiền!"
-  actionbar-insufficient-funds: "&cBạn không đủ tiền!"
-  chat-inventory-full: "&cTúi đồ của bạn đã đầy! Hãy dọn chỗ trống để mua vật phẩm này."
-  actionbar-inventory-full: "&cTúi đồ đã đầy!"

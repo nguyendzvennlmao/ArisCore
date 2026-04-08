@@ -51,4 +51,4 @@ public class SpawnSoundManager {
     public void playError(Player player) {
         playSound(player, "error");
     }
-  }
+}

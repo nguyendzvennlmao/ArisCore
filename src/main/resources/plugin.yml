@@ -3,7 +3,7 @@ version: 1.0
 main: me.aris.core.ArisCore
 api-version: "1.21"
 folia-supported: true
-description: Core plugin with TPA, Home, Warp, Spawn, AFK, RTP, Shop, Shards
+description: Core plugin with TPA, Home, Warp, Spawn, AFK, RTP, Shop, Shards, Sell
 author: Aris
 
 commands:
@@ -79,6 +79,12 @@ commands:
   shards:
     description: Shards management
     usage: /shards <give|take|set|reset|balance> [player] [amount]
+  sell:
+    description: Open sell GUI
+    usage: /sell
+  axsell:
+    description: Get AxeSell
+    usage: /axsell
 
 permissions:
   ariscore.tpa:
@@ -129,3 +135,7 @@ permissions:
     default: true
   ariscore.shards.admin:
     default: op
+  ariscore.sell:
+    default: true
+  ariscore.axsell:
+    default: true

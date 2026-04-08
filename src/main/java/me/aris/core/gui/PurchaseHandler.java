@@ -9,7 +9,6 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
@@ -90,6 +89,13 @@ public class PurchaseHandler {
         return shopConfig.getString("currencies." + currencyType.toLowerCase() + ".place-command", "");
     }
     
+    private void runCommand(String command) {
+        if (command == null || command.isEmpty()) return;
+        Bukkit.getGlobalRegionScheduler().run(plugin, scheduledTask -> {
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
+        });
+    }
+    
     public boolean processPurchase(Player player, ShopItem item) {
         String currencyType = item.getCurrency();
         long totalPrice = item.getPrice() * item.getAmount();
@@ -102,13 +108,8 @@ public class PurchaseHandler {
             
             String takeCommand = getTakeCommand("shards");
             if (!takeCommand.isEmpty()) {
-                final String finalCommand = takeCommand.replace("%player%", player.getName()).replace("%price%", String.valueOf(totalPrice));
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), finalCommand);
-                    }
-                }.runTask(plugin);
+                String finalCommand = takeCommand.replace("%player%", player.getName()).replace("%price%", String.valueOf(totalPrice));
+                runCommand(finalCommand);
             } else {
                 if (!plugin.getShardsManager().removeShards(player, totalPrice)) {
                     sendShopMessage(player, "insufficient-funds");
@@ -135,13 +136,8 @@ public class PurchaseHandler {
             if (currencyType.equalsIgnoreCase("SHARDS")) {
                 String placeCommand = getPlaceCommand("shards");
                 if (!placeCommand.isEmpty()) {
-                    final String finalCommand = placeCommand.replace("%player%", player.getName()).replace("%price%", String.valueOf(totalPrice));
-                    new BukkitRunnable() {
-                        @Override
-                        public void run() {
-                            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), finalCommand);
-                        }
-                    }.runTask(plugin);
+                    String finalCommand = placeCommand.replace("%player%", player.getName()).replace("%price%", String.valueOf(totalPrice));
+                    runCommand(finalCommand);
                 } else {
                     plugin.getShardsManager().addShards(player, totalPrice);
                 }
@@ -154,13 +150,8 @@ public class PurchaseHandler {
         }
         
         if (!item.getCommand().isEmpty()) {
-            final String finalCommand = item.getCommand().replace("%player%", player.getName()).replace("%amount%", String.valueOf(item.getAmount()));
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), finalCommand);
-                }
-            }.runTask(plugin);
+            String finalCommand = item.getCommand().replace("%player%", player.getName()).replace("%amount%", String.valueOf(item.getAmount()));
+            runCommand(finalCommand);
         } else {
             Material material;
             try {
@@ -174,4 +165,4 @@ public class PurchaseHandler {
         
         return true;
     }
-        }
+                    }

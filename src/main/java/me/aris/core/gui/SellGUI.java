@@ -1,6 +1,7 @@
 package me.aris.core.gui;
 
 import me.aris.core.ArisCore;
+import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -10,11 +11,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,12 +24,25 @@ public class SellGUI implements Listener {
     private ArisCore plugin;
     private FileConfiguration sellConfig;
     private FileConfiguration guiConfig;
+    private FileConfiguration pricesConfig;
     private Map<Material, Double> prices;
+    private Economy economy;
     
     public SellGUI(ArisCore plugin) {
         this.plugin = plugin;
         this.prices = new HashMap<>();
         loadConfigs();
+        setupEconomy();
+    }
+    
+    private void setupEconomy() {
+        if (Bukkit.getPluginManager().getPlugin("Vault") != null) {
+            org.bukkit.plugin.RegisteredServiceProvider<Economy> rsp = Bukkit.getServicesManager().getRegistration(Economy.class);
+            if (rsp != null) {
+                economy = rsp.getProvider();
+                plugin.getLogger().info("Vault economy hooked for Sell!");
+            }
+        }
     }
     
     private void loadConfigs() {
@@ -48,7 +62,14 @@ public class SellGUI implements Listener {
         
         File pricesFile = new File(plugin.getDataFolder(), "Sell/prices.yml");
         if (pricesFile.exists()) {
-            FileConfiguration pricesConfig = YamlConfiguration.loadConfiguration(pricesFile);
+            pricesConfig = YamlConfiguration.loadConfiguration(pricesFile);
+            loadPrices();
+        }
+    }
+    
+    private void loadPrices() {
+        prices.clear();
+        if (pricesConfig.contains("prices")) {
             for (String key : pricesConfig.getConfigurationSection("prices").getKeys(false)) {
                 try {
                     Material material = Material.valueOf(key);
@@ -63,15 +84,6 @@ public class SellGUI implements Listener {
     
     private String translateColors(String message) {
         return ChatColor.translateAlternateColorCodes('&', message);
-    }
-    
-    private String formatMaterialName(String name) {
-        String[] parts = name.toLowerCase().split("_");
-        StringBuilder result = new StringBuilder();
-        for (String part : parts) {
-            result.append(Character.toUpperCase(part.charAt(0))).append(part.substring(1)).append(" ");
-        }
-        return result.toString().trim();
     }
     
     private String formatPrice(double price) {
@@ -89,58 +101,6 @@ public class SellGUI implements Listener {
         
         Inventory gui = Bukkit.createInventory(null, rows * 9, translateColors(title));
         
-        Map<Material, Integer> itemsToSell = new HashMap<>();
-        double totalPrice = 0;
-        int totalItems = 0;
-        
-        for (ItemStack item : player.getInventory().getContents()) {
-            if (item != null && !item.getType().isAir()) {
-                double price = prices.getOrDefault(item.getType(), 0.0);
-                if (price > 0) {
-                    int amount = item.getAmount();
-                    itemsToSell.merge(item.getType(), amount, Integer::sum);
-                    totalPrice += price * amount;
-                    totalItems += amount;
-                }
-            }
-        }
-        
-        if (totalItems == 0) {
-            plugin.getMessageManager().sendMessage(player, "no-items", "sell");
-            return;
-        }
-        
-        String itemNameTemplate = guiConfig.getString("item-display.name", "&6%item%");
-        List<String> itemLoreTemplate = guiConfig.getStringList("item-display.lore");
-        
-        int slot = 0;
-        for (Map.Entry<Material, Integer> entry : itemsToSell.entrySet()) {
-            if (slot >= rows * 9 - 9) break;
-            
-            Material material = entry.getKey();
-            double price = prices.getOrDefault(material, 0.0);
-            int amount = entry.getValue();
-            double itemTotal = price * amount;
-            
-            ItemStack display = new ItemStack(material, Math.min(amount, 64));
-            ItemMeta meta = display.getItemMeta();
-            
-            String name = itemNameTemplate.replace("%item%", formatMaterialName(material.name()));
-            meta.setDisplayName(translateColors(name));
-            
-            List<String> coloredLore = new ArrayList<>();
-            for (String line : itemLoreTemplate) {
-                String coloredLine = line.replace("%amount%", String.valueOf(amount))
-                                       .replace("%price%", formatPrice(price))
-                                       .replace("%total_price%", formatPrice(itemTotal));
-                coloredLore.add(translateColors(coloredLine));
-            }
-            meta.setLore(coloredLore);
-            display.setItemMeta(meta);
-            gui.setItem(slot, display);
-            slot++;
-        }
-        
         int sellButtonSlot = guiConfig.getInt("sell-all-button.slot", 49);
         String sellButtonMaterial = guiConfig.getString("sell-all-button.material", "LIME_STAINED_GLASS_PANE");
         String sellButtonName = guiConfig.getString("sell-all-button.name", "&a&lBÁN TẤT CẢ");
@@ -157,11 +117,9 @@ public class SellGUI implements Listener {
         ItemMeta sellMeta = sellButton.getItemMeta();
         sellMeta.setDisplayName(translateColors(sellButtonName));
         
-        List<String> coloredSellLore = new ArrayList<>();
+        List<String> coloredSellLore = new java.util.ArrayList<>();
         for (String line : sellButtonLore) {
-            String coloredLine = line.replace("%total_items%", String.valueOf(totalItems))
-                                   .replace("%total_price%", formatPrice(totalPrice));
-            coloredSellLore.add(translateColors(coloredLine));
+            coloredSellLore.add(translateColors(line));
         }
         sellMeta.setLore(coloredSellLore);
         sellButton.setItemMeta(sellMeta);
@@ -183,7 +141,7 @@ public class SellGUI implements Listener {
         ItemMeta closeMeta = closeButton.getItemMeta();
         closeMeta.setDisplayName(translateColors(closeButtonName));
         if (closeButtonLore != null && !closeButtonLore.isEmpty()) {
-            List<String> coloredCloseLore = new ArrayList<>();
+            List<String> coloredCloseLore = new java.util.ArrayList<>();
             for (String line : closeButtonLore) {
                 coloredCloseLore.add(translateColors(line));
             }
@@ -204,29 +162,55 @@ public class SellGUI implements Listener {
         
         if (!title.equals(guiTitle)) return;
         
-        event.setCancelled(true);
+        int sellButtonSlot = guiConfig.getInt("sell-all-button.slot", 49);
+        int closeButtonSlot = guiConfig.getInt("close-button.slot", 50);
         
-        ItemStack clicked = event.getCurrentItem();
-        if (clicked == null || !clicked.hasItemMeta()) return;
-        
-        String displayName = ChatColor.stripColor(clicked.getItemMeta().getDisplayName());
-        String sellButtonName = ChatColor.stripColor(translateColors(guiConfig.getString("sell-all-button.name", "&a&lBÁN TẤT CẢ")));
-        String closeButtonName = ChatColor.stripColor(translateColors(guiConfig.getString("close-button.name", "&c&lĐÓNG")));
-        
-        if (displayName.equals(sellButtonName)) {
-            sellAllItems(player);
-            player.closeInventory();
-        } else if (displayName.equals(closeButtonName)) {
-            player.closeInventory();
+        if (event.getSlot() == sellButtonSlot || event.getSlot() == closeButtonSlot) {
+            event.setCancelled(true);
+            
+            if (event.getSlot() == sellButtonSlot) {
+                sellItemsInGUI(player, event.getInventory());
+                player.closeInventory();
+            } else if (event.getSlot() == closeButtonSlot) {
+                player.closeInventory();
+            }
         }
     }
     
-    private void sellAllItems(Player player) {
+    @EventHandler
+    public void onInventoryDrag(InventoryDragEvent event) {
+        if (!(event.getWhoClicked() instanceof Player)) return;
+        Player player = (Player) event.getWhoClicked();
+        String title = event.getView().getTitle();
+        String guiTitle = translateColors(guiConfig.getString("title", "&8Sell Vật phẩm giá ít ăn nhiều"));
+        
+        if (!title.equals(guiTitle)) return;
+        
+        int sellButtonSlot = guiConfig.getInt("sell-all-button.slot", 49);
+        int closeButtonSlot = guiConfig.getInt("close-button.slot", 50);
+        
+        for (Integer slot : event.getRawSlots()) {
+            if (slot == sellButtonSlot || slot == closeButtonSlot) {
+                event.setCancelled(true);
+                return;
+            }
+        }
+    }
+    
+    private void sellItemsInGUI(Player player, Inventory gui) {
+        if (economy == null) {
+            player.sendMessage(ChatColor.RED + "Economy system not found!");
+            return;
+        }
+        
         Map<Material, Integer> itemsToSell = new HashMap<>();
         double totalPrice = 0;
         int totalItems = 0;
         
-        for (ItemStack item : player.getInventory().getContents()) {
+        for (int i = 0; i < gui.getSize(); i++) {
+            if (i == 49 || i == 50) continue;
+            
+            ItemStack item = gui.getItem(i);
             if (item != null && !item.getType().isAir()) {
                 double price = prices.getOrDefault(item.getType(), 0.0);
                 if (price > 0) {
@@ -243,16 +227,16 @@ public class SellGUI implements Listener {
             return;
         }
         
-        for (Map.Entry<Material, Integer> entry : itemsToSell.entrySet()) {
-            ItemStack toRemove = new ItemStack(entry.getKey(), entry.getValue());
-            player.getInventory().removeItem(toRemove);
+        for (int i = 0; i < gui.getSize(); i++) {
+            if (i == 49 || i == 50) continue;
+            gui.setItem(i, null);
         }
         
-        plugin.getShardsManager().addShards(player, (long) totalPrice);
+        economy.depositPlayer(player, totalPrice);
         
         Map<String, String> placeholders = new HashMap<>();
         placeholders.put("total_items", String.valueOf(totalItems));
         placeholders.put("total_price", formatPrice(totalPrice));
         plugin.getMessageManager().sendMessage(player, "sold-all", "sell", placeholders);
     }
-                }
+            }

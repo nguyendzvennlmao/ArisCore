@@ -96,4 +96,4 @@ public class TPAMessageManager {
         placeholders.put(placeholder, value);
         sendMessage(player, path, placeholders);
     }
-  }
+                                                 }

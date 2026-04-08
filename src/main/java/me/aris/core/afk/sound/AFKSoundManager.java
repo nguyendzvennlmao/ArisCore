@@ -59,4 +59,4 @@ public class AFKSoundManager {
     public void playError(Player player) {
         playSound(player, "error");
     }
-                                 }
+}

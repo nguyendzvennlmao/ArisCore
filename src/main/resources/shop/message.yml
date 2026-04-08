@@ -1,0 +1,11 @@
+prefix: "&8[&aShop&8]&r "
+
+message:
+  chat-no-permission: "&cBạn không có quyền!"
+  actionbar-no-permission: "&cNo permission"
+  chat-insufficient-funds: "&cBạn không đủ tiền!"
+  actionbar-insufficient-funds: "&cInsufficient funds"
+  chat-inventory-full: "&cTúi đồ của bạn đã đầy!"
+  actionbar-inventory-full: "&cInventory full"
+  chat-purchased: "&aBạn đã mua &e%amount%x %item% &avới giá &e%price%&a!"
+  actionbar-purchased: "&aPurchased %item% x%amount% for %price%"

@@ -19,4 +19,4 @@ public class TeleportRequest {
     public Player getTarget() { return target; }
     public boolean isHere() { return isHere; }
     public long getTimestamp() { return timestamp; }
-}
+    }

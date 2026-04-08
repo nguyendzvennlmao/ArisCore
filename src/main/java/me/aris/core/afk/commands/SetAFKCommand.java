@@ -29,6 +29,7 @@ public class SetAFKCommand implements CommandExecutor {
         
         plugin.getAFKManager().setAFKLocation(player.getLocation());
         plugin.getAFKMessageManager().sendMessage(player, "afk-location-set");
+        plugin.getAFKSoundManager().playAFKLocationSet(player);
         
         return true;
     }

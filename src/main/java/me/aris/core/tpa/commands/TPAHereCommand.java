@@ -56,7 +56,7 @@ public class TPAHereCommand implements CommandExecutor {
             return true;
         }
         
-        if (plugin.getConfigManager().getModuleConfig("tpa").getBoolean("gui.enabled", true) && plugin.getTPAManager().isGUIHereEnabled(player)) {
+        if (plugin.getTPAConfigManager().isGUIEnabled() && plugin.getTPAManager().isGUIHereEnabled(player)) {
             plugin.getTPAGUI().openRequestGUI(player, target, true);
         } else {
             TeleportRequest request = new TeleportRequest(player, target, true);
@@ -70,4 +70,4 @@ public class TPAHereCommand implements CommandExecutor {
         
         return true;
     }
-                }
+                                                      }

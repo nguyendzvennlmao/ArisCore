@@ -51,7 +51,7 @@ public class TPACommand implements CommandExecutor {
             return true;
         }
         
-        if (plugin.getConfigManager().getModuleConfig("tpa").getBoolean("gui.enabled", true) && plugin.getTPAManager().isGUIEnabled(player)) {
+        if (plugin.getTPAConfigManager().isGUIEnabled() && plugin.getTPAManager().isGUIEnabled(player)) {
             plugin.getTPAGUI().openRequestGUI(player, target, false);
         } else {
             TeleportRequest request = new TeleportRequest(player, target, false);

@@ -1,32 +1,25 @@
 package me.aris.core;
 
-import me.aris.core.managers.ConfigManager;
-import me.aris.core.managers.MessageManager;
-import me.aris.core.managers.SoundManager;
-import me.aris.core.teleport.TeleportManager;
-import me.aris.core.listeners.TeleportListener;
 import me.aris.core.tpa.TPAManager;
 import me.aris.core.tpa.TPAMessageManager;
 import me.aris.core.tpa.TPASoundManager;
 import me.aris.core.tpa.TPAGUI;
+import me.aris.core.tpa.TPATeleportManager;
+import me.aris.core.tpa.config.TPAConfigManager;
 import me.aris.core.tpa.commands.*;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.java.JavaPlugin;
 import java.io.File;
-import java.io.IOException;
 
 public class ArisCore extends JavaPlugin {
     private static ArisCore instance;
-    private ConfigManager configManager;
-    private MessageManager messageManager;
-    private SoundManager soundManager;
-    private TeleportManager teleportManager;
-    
+    private TPAConfigManager tpaConfigManager;
     private TPAManager tpaManager;
     private TPAMessageManager tpaMessageManager;
     private TPASoundManager tpaSoundManager;
     private TPAGUI tpaGUI;
+    private TPATeleportManager tpaTeleportManager;
 
     @Override
     public void onEnable() {
@@ -34,13 +27,10 @@ public class ArisCore extends JavaPlugin {
         printLogo();
         createFolders();
         
-        configManager = new ConfigManager(this);
-        messageManager = new MessageManager(this);
-        soundManager = new SoundManager(this);
-        teleportManager = new TeleportManager(this);
-        
+        tpaConfigManager = new TPAConfigManager(this);
         tpaMessageManager = new TPAMessageManager(this);
         tpaSoundManager = new TPASoundManager(this);
+        tpaTeleportManager = new TPATeleportManager(this);
         tpaManager = new TPAManager(this);
         tpaGUI = new TPAGUI(this);
         
@@ -59,17 +49,9 @@ public class ArisCore extends JavaPlugin {
     }
     
     private void createFolders() {
-        String[] folders = {"", "Location", "tpa", "tpa/gui"};
+        String[] folders = {"", "tpa", "tpa/gui"};
         for (String folder : folders) {
             new File(getDataFolder(), folder).mkdirs();
-        }
-        
-        String[] files = {"config.yml", "Location/spawn.yml", "Location/home.yml", "Location/warp.yml", "Location/afk.yml", "shards-data.yml"};
-        for (String file : files) {
-            File f = new File(getDataFolder(), file);
-            if (!f.exists()) {
-                try { f.createNewFile(); } catch (IOException e) {}
-            }
         }
     }
     
@@ -85,7 +67,6 @@ public class ArisCore extends JavaPlugin {
     }
     
     private void registerListeners() {
-        getServer().getPluginManager().registerEvents(new TeleportListener(this), this);
         getServer().getPluginManager().registerEvents(tpaGUI, this);
     }
     
@@ -96,12 +77,10 @@ public class ArisCore extends JavaPlugin {
     }
     
     public static ArisCore getInstance() { return instance; }
-    public ConfigManager getConfigManager() { return configManager; }
-    public MessageManager getMessageManager() { return messageManager; }
-    public SoundManager getSoundManager() { return soundManager; }
-    public TeleportManager getTeleportManager() { return teleportManager; }
+    public TPAConfigManager getTPAConfigManager() { return tpaConfigManager; }
     public TPAManager getTPAManager() { return tpaManager; }
     public TPAMessageManager getTPAMessageManager() { return tpaMessageManager; }
     public TPASoundManager getTPASoundManager() { return tpaSoundManager; }
     public TPAGUI getTPAGUI() { return tpaGUI; }
-}
+    public TPATeleportManager getTPATeleportManager() { return tpaTeleportManager; }
+    }

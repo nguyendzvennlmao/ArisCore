@@ -83,4 +83,4 @@ public class SpawnManager {
     public boolean hasSpawn() {
         return spawnLocation != null && spawnLocation.getWorld() != null;
     }
-                  }
+                                      }

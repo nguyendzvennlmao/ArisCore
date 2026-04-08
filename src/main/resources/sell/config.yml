@@ -1,0 +1,9 @@
+enabled: true
+
+messages:
+  chat: true
+  action-bar: true
+
+gui:
+  title: "&8Sell Vật phẩm giá ít ăn nhiều"
+  rows: 6

@@ -38,7 +38,7 @@ public class TPAManager {
         String key = sender.getUniqueId().toString() + ":" + target.getUniqueId().toString();
         
         if (cooldowns.containsKey(key)) {
-            long remaining = (cooldowns.get(key) + 30000) - System.currentTimeMillis();
+            long remaining = (cooldowns.get(key) + plugin.getTPAConfigManager().getCooldown() * 1000L) - System.currentTimeMillis();
             if (remaining > 0) {
                 plugin.getTPAMessageManager().sendMessage(sender, "request-cooldown");
                 return false;
@@ -75,7 +75,7 @@ public class TPAManager {
                     plugin.getTPAMessageManager().sendMessage(request.getSender(), "request-expired", placeholders);
                 }
             }
-        }.runTaskLater(plugin, 120 * 20L);
+        }.runTaskLater(plugin, plugin.getTPAConfigManager().getExpirationTime() * 20L);
     }
     
     public TeleportRequest getRequest(Player target, Player sender) {
@@ -200,4 +200,4 @@ public class TPAManager {
         }
         persistentTasks.clear();
     }
-                }
+                    }

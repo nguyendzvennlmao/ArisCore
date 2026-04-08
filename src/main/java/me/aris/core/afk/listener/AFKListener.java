@@ -18,7 +18,8 @@ public class AFKListener implements Listener {
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
         Player player = event.getPlayer();
-        if (event.getFrom().distance(event.getTo()) > 0.1) {
+        if (event.getFrom().getBlockX() != event.getTo().getBlockX() ||
+            event.getFrom().getBlockZ() != event.getTo().getBlockZ()) {
             plugin.getAFKManager().updateActivity(player);
         }
     }

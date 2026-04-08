@@ -33,4 +33,4 @@ public class SetSpawnCommand implements CommandExecutor {
         
         return true;
     }
-  }
+}

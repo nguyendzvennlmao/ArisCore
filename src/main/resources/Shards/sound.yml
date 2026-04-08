@@ -1,0 +1,4 @@
+sounds:
+  shards-receive: ENTITY_EXPERIENCE_ORB_PICKUP
+  shards-send: ENTITY_ITEM_PICKUP
+  error: ENTITY_VILLAGER_NO

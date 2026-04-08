@@ -34,6 +34,7 @@ public class DelAFKCommand implements CommandExecutor {
         
         plugin.getAFKManager().deleteAFKLocation();
         plugin.getAFKMessageManager().sendMessage(player, "afk-location-deleted");
+        plugin.getAFKSoundManager().playAFKLocationDelete(player);
         
         return true;
     }

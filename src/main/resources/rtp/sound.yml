@@ -1,0 +1,5 @@
+sounds:
+  countdown: ENTITY_ENDERMAN_TELEPORT
+  teleport-success: ENTITY_PLAYER_LEVELUP
+  teleport-cancel: ENTITY_ITEM_BREAK
+  error: ENTITY_VILLAGER_NO

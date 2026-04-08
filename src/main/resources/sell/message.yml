@@ -1,0 +1,11 @@
+prefix: "&8[&6Sell&8]&r "
+
+message:
+  chat-no-permission: "&cBạn không có quyền!"
+  actionbar-no-permission: "&cNo permission"
+  chat-no-items: "&cKhông có vật phẩm nào để bán!"
+  actionbar-no-items: "&cNo items to sell"
+  chat-sold-all: "&aBạn đã bán &e%total_items% vật phẩm &avới tổng giá &6%total_price%&a!"
+  actionbar-sold-all: "&aSold %total_items% items for %total_price%"
+  chat-player-only: "&cThis command can only be used by players."
+  actionbar-player-only: "&cPlayer only command"

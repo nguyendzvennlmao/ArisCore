@@ -7,6 +7,8 @@ import me.aris.core.commands.home.DelHomeCommand;
 import me.aris.core.commands.home.HomeCommand;
 import me.aris.core.commands.home.SetHomeCommand;
 import me.aris.core.commands.rtp.RTPCommand;
+import me.aris.core.commands.sell.AxeSellCommand;
+import me.aris.core.commands.sell.SellCommand;
 import me.aris.core.commands.shards.ShardsCommand;
 import me.aris.core.commands.shop.ShopCommand;
 import me.aris.core.commands.spawn.DelSpawnCommand;
@@ -16,15 +18,11 @@ import me.aris.core.commands.tpa.*;
 import me.aris.core.commands.warp.DelWarpCommand;
 import me.aris.core.commands.warp.SetWarpCommand;
 import me.aris.core.commands.warp.WarpCommand;
-import me.aris.core.gui.ConfirmGUI;
-import me.aris.core.gui.HomeGUI;
-import me.aris.core.gui.RTPGUI;
-import me.aris.core.gui.WarpGUI;
-import me.aris.core.hooks.PlaceholderHook;
+import me.aris.core.gui.*;
 import me.aris.core.listeners.AFKListener;
 import me.aris.core.listeners.TeleportListener;
 import me.aris.core.managers.*;
-import me.aris.core.shop.ShopGUI;
+import me.aris.core.shop.*;
 import me.aris.core.teleport.*;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -45,6 +43,7 @@ public class ArisCore extends JavaPlugin {
     private AFKManager afkManager;
     private TPAManager tpaManager;
     private ShardsManager shardsManager;
+    private SellManager sellManager;
     private TeleportManager teleportManager;
     private HomeTeleport homeTeleport;
     private SpawnTeleport spawnTeleport;
@@ -57,7 +56,7 @@ public class ArisCore extends JavaPlugin {
     private ConfirmGUI confirmGUI;
     private RTPGUI rtpGUI;
     private ShopGUI shopGUI;
-    private PlaceholderHook placeholderHook;
+    private SellGUI sellGUI;
 
     @Override
     public void onEnable() {
@@ -75,6 +74,7 @@ public class ArisCore extends JavaPlugin {
         afkManager = new AFKManager(this);
         tpaManager = new TPAManager(this);
         shardsManager = new ShardsManager(this);
+        sellManager = new SellManager(this);
         teleportManager = new TeleportManager(this);
         homeTeleport = new HomeTeleport(this, teleportManager);
         spawnTeleport = new SpawnTeleport(this, teleportManager);
@@ -87,30 +87,12 @@ public class ArisCore extends JavaPlugin {
         confirmGUI = new ConfirmGUI(this);
         rtpGUI = new RTPGUI(this);
         shopGUI = new ShopGUI(this);
-        
-        if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
-            placeholderHook = new PlaceholderHook(this);
-            placeholderHook.register();
-            getLogger().info("PlaceholderAPI hook registered!");
-        }
+        sellGUI = new SellGUI(this);
         
         registerCommands();
         registerListeners();
         
         getLogger().info(ChatColor.GREEN + "ArisCore has been enabled!");
-    }
-    
-    @Override
-    public void onDisable() {
-        if (placeholderHook != null) {
-            placeholderHook.unregister();
-        }
-        if (homeManager != null) homeManager.saveHomes();
-        if (warpManager != null) warpManager.saveWarps();
-        if (tpaManager != null) tpaManager.shutdown();
-        if (afkManager != null) afkManager.shutdown();
-        if (shardsManager != null) shardsManager.saveData();
-        getLogger().info("ArisCore has been disabled!");
     }
     
     private void printLogo() {
@@ -142,6 +124,7 @@ public class ArisCore extends JavaPlugin {
         createFolder("Shop");
         createFolder("Shop/gui");
         createFolder("Shards");
+        createFolder("Sell");
         
         createConfigFromResource("config.yml", "config.yml");
         
@@ -179,6 +162,11 @@ public class ArisCore extends JavaPlugin {
         
         createConfigFromResource("Shards/config.yml", "Shards/config.yml");
         createConfigFromResource("Shards/message.yml", "Shards/message.yml");
+        
+        createConfigFromResource("Sell/config.yml", "Sell/config.yml");
+        createConfigFromResource("Sell/message.yml", "Sell/message.yml");
+        createConfigFromResource("Sell/gui.yml", "Sell/gui.yml");
+        createConfigFromResource("Sell/prices.yml", "Sell/prices.yml");
         
         createEmptyFile("Location/spawn.yml");
         createEmptyFile("Location/home.yml");
@@ -222,6 +210,16 @@ public class ArisCore extends JavaPlugin {
                 getLogger().warning("Failed to create " + path + ": " + e.getMessage());
             }
         }
+    }
+
+    @Override
+    public void onDisable() {
+        if (homeManager != null) homeManager.saveHomes();
+        if (warpManager != null) warpManager.saveWarps();
+        if (tpaManager != null) tpaManager.shutdown();
+        if (afkManager != null) afkManager.shutdown();
+        if (shardsManager != null) shardsManager.saveData();
+        getLogger().info("ArisCore has been disabled!");
     }
 
     private void registerCommands() {
@@ -271,6 +269,11 @@ public class ArisCore extends JavaPlugin {
         if (configManager != null && configManager.isModuleEnabled("shards")) {
             getCommand("shards").setExecutor(new ShardsCommand(this));
         }
+        
+        if (configManager != null && configManager.isModuleEnabled("sell")) {
+            getCommand("sell").setExecutor(new SellCommand(this));
+            getCommand("axsell").setExecutor(new AxeSellCommand(this));
+        }
     }
 
     private void registerListeners() {
@@ -287,6 +290,10 @@ public class ArisCore extends JavaPlugin {
         if (configManager != null && configManager.isModuleEnabled("shop")) {
             getServer().getPluginManager().registerEvents(shopGUI, this);
         }
+        if (configManager != null && configManager.isModuleEnabled("sell")) {
+            getServer().getPluginManager().registerEvents(sellGUI, this);
+            getServer().getPluginManager().registerEvents(sellManager, this);
+        }
     }
 
     public static ArisCore getInstance() { return instance; }
@@ -298,6 +305,7 @@ public class ArisCore extends JavaPlugin {
     public AFKManager getAFKManager() { return afkManager; }
     public TPAManager getTPAManager() { return tpaManager; }
     public ShardsManager getShardsManager() { return shardsManager; }
+    public SellManager getSellManager() { return sellManager; }
     public TeleportManager getTeleportManager() { return teleportManager; }
     public HomeTeleport getHomeTeleport() { return homeTeleport; }
     public SpawnTeleport getSpawnTeleport() { return spawnTeleport; }
@@ -310,4 +318,5 @@ public class ArisCore extends JavaPlugin {
     public ConfirmGUI getConfirmGUI() { return confirmGUI; }
     public RTPGUI getRTPGUI() { return rtpGUI; }
     public ShopGUI getShopGUI() { return shopGUI; }
-    }
+    public SellGUI getSellGUI() { return sellGUI; }
+}

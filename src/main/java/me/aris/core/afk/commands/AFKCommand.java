@@ -35,4 +35,4 @@ public class AFKCommand implements CommandExecutor {
         
         return true;
     }
-              }
+    }

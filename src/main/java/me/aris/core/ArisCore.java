@@ -1,67 +1,47 @@
 package me.aris.core;
 
-import me.aris.core.afk.commands.AFKCommand;
-import me.aris.core.afk.commands.DelAFKCommand;
-import me.aris.core.afk.commands.SetAFKCommand;
-import me.aris.core.afk.listener.AFKListener;
-import me.aris.core.afk.manager.AFKManager;
-import me.aris.core.afk.message.AFKMessageManager;
-import me.aris.core.afk.sound.AFKSoundManager;
-import me.aris.core.home.commands.DelHomeCommand;
-import me.aris.core.home.commands.HomeCommand;
-import me.aris.core.home.commands.SetHomeCommand;
-import me.aris.core.home.gui.ConfirmGUI;
-import me.aris.core.home.gui.HomeGUI;
-import me.aris.core.home.manager.HomeManager;
-import me.aris.core.home.message.HomeMessageManager;
-import me.aris.core.home.sound.HomeSoundManager;
 import me.aris.core.managers.ConfigManager;
-import me.aris.core.rtp.commands.RTPCommand;
-import me.aris.core.rtp.gui.RTPGUI;
-import me.aris.core.rtp.manager.RTPManager;
-import me.aris.core.rtp.message.RTPMessageManager;
-import me.aris.core.rtp.sound.RTPSoundManager;
-import me.aris.core.sell.commands.SellCommand;
-import me.aris.core.sell.gui.SellGUI;
-import me.aris.core.sell.manager.SellManager;
-import me.aris.core.sell.message.SellMessageManager;
-import me.aris.core.sell.sound.SellSoundManager;
-import me.aris.core.shards.commands.ShardsCommand;
-import me.aris.core.shards.manager.ShardsManager;
-import me.aris.core.shards.message.ShardsMessageManager;
-import me.aris.core.shards.sound.ShardsSoundManager;
-import me.aris.core.shop.commands.ShopCommand;
-import me.aris.core.shop.gui.ShopGUI;
-import me.aris.core.shop.manager.ShopManager;
-import me.aris.core.shop.message.ShopMessageManager;
-import me.aris.core.shop.sound.ShopSoundManager;
-import me.aris.core.spawn.commands.DelSpawnCommand;
-import me.aris.core.spawn.commands.SetSpawnCommand;
-import me.aris.core.spawn.commands.SpawnCommand;
-import me.aris.core.spawn.manager.SpawnManager;
-import me.aris.core.spawn.message.SpawnMessageManager;
-import me.aris.core.spawn.sound.SpawnSoundManager;
-import me.aris.core.tpa.commands.*;
-import me.aris.core.tpa.gui.TPAGUI;
-import me.aris.core.tpa.manager.TPAManager;
-import me.aris.core.tpa.message.TPAMessageManager;
-import me.aris.core.tpa.sound.TPASoundManager;
-import me.aris.core.warp.commands.DelWarpCommand;
-import me.aris.core.warp.commands.SetWarpCommand;
-import me.aris.core.warp.commands.WarpCommand;
-import me.aris.core.warp.manager.WarpManager;
-import me.aris.core.warp.message.WarpMessageManager;
-import me.aris.core.warp.sound.WarpSoundManager;
-import me.aris.core.listeners.TeleportListener;
 import me.aris.core.teleport.TeleportManager;
+import me.aris.core.listeners.TeleportListener;
+import me.aris.core.tpa.TPAManager;
+import me.aris.core.tpa.TPAMessageManager;
+import me.aris.core.tpa.TPASoundManager;
+import me.aris.core.tpa.TPAGUI;
+import me.aris.core.home.HomeManager;
+import me.aris.core.home.HomeMessageManager;
+import me.aris.core.home.HomeSoundManager;
+import me.aris.core.home.HomeGUI;
+import me.aris.core.home.ConfirmGUI;
+import me.aris.core.warp.WarpManager;
+import me.aris.core.warp.WarpMessageManager;
+import me.aris.core.warp.WarpSoundManager;
+import me.aris.core.spawn.SpawnManager;
+import me.aris.core.spawn.SpawnMessageManager;
+import me.aris.core.spawn.SpawnSoundManager;
+import me.aris.core.afk.AFKManager;
+import me.aris.core.afk.AFKMessageManager;
+import me.aris.core.afk.AFKSoundManager;
+import me.aris.core.afk.AFKListener;
+import me.aris.core.rtp.RTPManager;
+import me.aris.core.rtp.RTPMessageManager;
+import me.aris.core.rtp.RTPSoundManager;
+import me.aris.core.rtp.RTPGUI;
+import me.aris.core.shop.ShopManager;
+import me.aris.core.shop.ShopMessageManager;
+import me.aris.core.shop.ShopSoundManager;
+import me.aris.core.shop.ShopGUI;
+import me.aris.core.shards.ShardsManager;
+import me.aris.core.shards.ShardsMessageManager;
+import me.aris.core.shards.ShardsSoundManager;
+import me.aris.core.sell.SellManager;
+import me.aris.core.sell.SellMessageManager;
+import me.aris.core.sell.SellSoundManager;
+import me.aris.core.sell.SellGUI;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.java.JavaPlugin;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 
 public class ArisCore extends JavaPlugin {
     private static ArisCore instance;
@@ -115,7 +95,7 @@ public class ArisCore extends JavaPlugin {
     public void onEnable() {
         instance = this;
         printLogo();
-        createAllConfigs();
+        createFolders();
         
         configManager = new ConfigManager(this);
         teleportManager = new TeleportManager(this);
@@ -177,168 +157,66 @@ public class ArisCore extends JavaPlugin {
         }
     }
     
-    private void createAllConfigs() {
-        createFolder("");
-        createFolder("Location");
-        createFolder("tpa");
-        createFolder("tpa/gui");
-        createFolder("home");
-        createFolder("home/gui");
-        createFolder("warp");
-        createFolder("spawn");
-        createFolder("afk");
-        createFolder("rtp");
-        createFolder("shop");
-        createFolder("shop/gui");
-        createFolder("shards");
-        createFolder("sell");
+    private void createFolders() {
+        String[] folders = {"", "Location", "tpa", "tpa/gui", "home", "home/gui", "warp", "spawn", "afk", "rtp", "shop", "shop/gui", "shards", "sell"};
+        for (String folder : folders) {
+            new File(getDataFolder(), folder).mkdirs();
+        }
         
-        createConfigFromResource("config.yml", "config.yml");
-        
-        createConfigFromResource("tpa/config.yml", "tpa/config.yml");
-        createConfigFromResource("tpa/message.yml", "tpa/message.yml");
-        createConfigFromResource("tpa/sound.yml", "tpa/sound.yml");
-        createConfigFromResource("tpa/gui/tpa.yml", "tpa/gui/tpa.yml");
-        createConfigFromResource("tpa/gui/tpahere.yml", "tpa/gui/tpahere.yml");
-        
-        createConfigFromResource("home/config.yml", "home/config.yml");
-        createConfigFromResource("home/message.yml", "home/message.yml");
-        createConfigFromResource("home/sound.yml", "home/sound.yml");
-        createConfigFromResource("home/gui/home.yml", "home/gui/home.yml");
-        createConfigFromResource("home/gui/confirm.yml", "home/gui/confirm.yml");
-        
-        createConfigFromResource("warp/config.yml", "warp/config.yml");
-        createConfigFromResource("warp/message.yml", "warp/message.yml");
-        createConfigFromResource("warp/sound.yml", "warp/sound.yml");
-        
-        createConfigFromResource("spawn/config.yml", "spawn/config.yml");
-        createConfigFromResource("spawn/message.yml", "spawn/message.yml");
-        createConfigFromResource("spawn/sound.yml", "spawn/sound.yml");
-        
-        createConfigFromResource("afk/config.yml", "afk/config.yml");
-        createConfigFromResource("afk/message.yml", "afk/message.yml");
-        createConfigFromResource("afk/sound.yml", "afk/sound.yml");
-        
-        createConfigFromResource("rtp/config.yml", "rtp/config.yml");
-        createConfigFromResource("rtp/message.yml", "rtp/message.yml");
-        createConfigFromResource("rtp/sound.yml", "rtp/sound.yml");
-        createConfigFromResource("rtp/gui.yml", "rtp/gui.yml");
-        
-        createConfigFromResource("shop/config.yml", "shop/config.yml");
-        createConfigFromResource("shop/message.yml", "shop/message.yml");
-        createConfigFromResource("shop/sound.yml", "shop/sound.yml");
-        createConfigFromResource("shop/gui/end.yml", "shop/gui/end.yml");
-        createConfigFromResource("shop/gui/nether.yml", "shop/gui/nether.yml");
-        createConfigFromResource("shop/gui/gear.yml", "shop/gui/gear.yml");
-        createConfigFromResource("shop/gui/food.yml", "shop/gui/food.yml");
-        createConfigFromResource("shop/gui/shards.yml", "shop/gui/shards.yml");
-        
-        createConfigFromResource("shards/config.yml", "shards/config.yml");
-        createConfigFromResource("shards/message.yml", "shards/message.yml");
-        createConfigFromResource("shards/sound.yml", "shards/sound.yml");
-        
-        createConfigFromResource("sell/config.yml", "sell/config.yml");
-        createConfigFromResource("sell/message.yml", "sell/message.yml");
-        createConfigFromResource("sell/sound.yml", "sell/sound.yml");
-        createConfigFromResource("sell/prices.yml", "sell/prices.yml");
-        createConfigFromResource("sell/gui.yml", "sell/gui.yml");
-        
-        createEmptyFile("Location/spawn.yml");
-        createEmptyFile("Location/home.yml");
-        createEmptyFile("Location/warp.yml");
-        createEmptyFile("Location/afk.yml");
-        createEmptyFile("shards-data.yml");
-    }
-    
-    private void createFolder(String path) {
-        File folder = new File(getDataFolder(), path);
-        if (!folder.exists()) folder.mkdirs();
-    }
-    
-    private void createConfigFromResource(String targetPath, String resourcePath) {
-        File targetFile = new File(getDataFolder(), targetPath);
-        if (!targetFile.exists()) {
-            try {
-                targetFile.getParentFile().mkdirs();
-                InputStream is = getResource(resourcePath);
-                if (is != null) {
-                    Files.copy(is, targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                } else {
-                    targetFile.createNewFile();
-                }
-            } catch (IOException e) {
-                getLogger().warning("Failed to create " + targetPath);
+        String[] files = {"config.yml", "Location/spawn.yml", "Location/home.yml", "Location/warp.yml", "Location/afk.yml", "shards-data.yml"};
+        for (String file : files) {
+            File f = new File(getDataFolder(), file);
+            if (!f.exists()) {
+                try { f.createNewFile(); } catch (IOException e) {}
             }
         }
     }
     
-    private void createEmptyFile(String path) {
-        File file = new File(getDataFolder(), path);
-        if (!file.exists()) {
-            try {
-                file.getParentFile().mkdirs();
-                file.createNewFile();
-            } catch (IOException e) {
-                getLogger().warning("Failed to create " + path);
-            }
-        }
-    }
-
-    @Override
-    public void onDisable() {
-        if (homeManager != null) homeManager.saveHomes();
-        if (warpManager != null) warpManager.saveWarps();
-        if (tpaManager != null) tpaManager.shutdown();
-        if (afkManager != null) afkManager.shutdown();
-        if (shardsManager != null) shardsManager.saveData();
-        getLogger().info("ArisCore has been disabled!");
-    }
-
     private void registerCommands() {
         if (configManager.isModuleEnabled("tpa")) {
-            getCommand("tpa").setExecutor(new TPACommand(this));
-            getCommand("tpahere").setExecutor(new TPAHereCommand(this));
-            getCommand("tpaccept").setExecutor(new TPAcceptCommand(this));
-            getCommand("tpdeny").setExecutor(new TPDenyCommand(this));
-            getCommand("tpacancel").setExecutor(new TPAcancelCommand(this));
-            getCommand("tpatoggle").setExecutor(new TPAToggleCommand(this));
-            getCommand("tpaheretoggle").setExecutor(new TPAHereToggleCommand(this));
-            getCommand("tpauto").setExecutor(new TPAutoCommand(this));
+            getCommand("tpa").setExecutor(new me.aris.core.tpa.commands.TPACommand(this));
+            getCommand("tpahere").setExecutor(new me.aris.core.tpa.commands.TPAHereCommand(this));
+            getCommand("tpaccept").setExecutor(new me.aris.core.tpa.commands.TPAcceptCommand(this));
+            getCommand("tpdeny").setExecutor(new me.aris.core.tpa.commands.TPDenyCommand(this));
+            getCommand("tpacancel").setExecutor(new me.aris.core.tpa.commands.TPAcancelCommand(this));
+            getCommand("tpatoggle").setExecutor(new me.aris.core.tpa.commands.TPAToggleCommand(this));
+            getCommand("tpaheretoggle").setExecutor(new me.aris.core.tpa.commands.TPAHereToggleCommand(this));
+            getCommand("tpauto").setExecutor(new me.aris.core.tpa.commands.TPAutoCommand(this));
         }
         if (configManager.isModuleEnabled("home")) {
-            getCommand("home").setExecutor(new HomeCommand(this));
-            getCommand("sethome").setExecutor(new SetHomeCommand(this));
-            getCommand("delhome").setExecutor(new DelHomeCommand(this));
+            getCommand("home").setExecutor(new me.aris.core.home.commands.HomeCommand(this));
+            getCommand("sethome").setExecutor(new me.aris.core.home.commands.SetHomeCommand(this));
+            getCommand("delhome").setExecutor(new me.aris.core.home.commands.DelHomeCommand(this));
         }
         if (configManager.isModuleEnabled("warp")) {
-            getCommand("warp").setExecutor(new WarpCommand(this));
-            getCommand("setwarp").setExecutor(new SetWarpCommand(this));
-            getCommand("delwarp").setExecutor(new DelWarpCommand(this));
+            getCommand("warp").setExecutor(new me.aris.core.warp.commands.WarpCommand(this));
+            getCommand("setwarp").setExecutor(new me.aris.core.warp.commands.SetWarpCommand(this));
+            getCommand("delwarp").setExecutor(new me.aris.core.warp.commands.DelWarpCommand(this));
         }
         if (configManager.isModuleEnabled("spawn")) {
-            getCommand("spawn").setExecutor(new SpawnCommand(this));
-            getCommand("setspawn").setExecutor(new SetSpawnCommand(this));
-            getCommand("delspawn").setExecutor(new DelSpawnCommand(this));
+            getCommand("spawn").setExecutor(new me.aris.core.spawn.commands.SpawnCommand(this));
+            getCommand("setspawn").setExecutor(new me.aris.core.spawn.commands.SetSpawnCommand(this));
+            getCommand("delspawn").setExecutor(new me.aris.core.spawn.commands.DelSpawnCommand(this));
         }
         if (configManager.isModuleEnabled("afk")) {
-            getCommand("afk").setExecutor(new AFKCommand(this));
-            getCommand("setafk").setExecutor(new SetAFKCommand(this));
-            getCommand("delafk").setExecutor(new DelAFKCommand(this));
+            getCommand("afk").setExecutor(new me.aris.core.afk.commands.AFKCommand(this));
+            getCommand("setafk").setExecutor(new me.aris.core.afk.commands.SetAFKCommand(this));
+            getCommand("delafk").setExecutor(new me.aris.core.afk.commands.DelAFKCommand(this));
         }
         if (configManager.isModuleEnabled("rtp")) {
-            getCommand("rtp").setExecutor(new RTPCommand(this));
+            getCommand("rtp").setExecutor(new me.aris.core.rtp.commands.RTPCommand(this));
         }
         if (configManager.isModuleEnabled("shop")) {
-            getCommand("shop").setExecutor(new ShopCommand(this));
+            getCommand("shop").setExecutor(new me.aris.core.shop.commands.ShopCommand(this));
         }
         if (configManager.isModuleEnabled("shards")) {
-            getCommand("shards").setExecutor(new ShardsCommand(this));
+            getCommand("shards").setExecutor(new me.aris.core.shards.commands.ShardsCommand(this));
         }
         if (configManager.isModuleEnabled("sell")) {
-            getCommand("sell").setExecutor(new SellCommand(this));
+            getCommand("sell").setExecutor(new me.aris.core.sell.commands.SellCommand(this));
         }
     }
-
+    
     private void registerListeners() {
         getServer().getPluginManager().registerEvents(new TeleportListener(this), this);
         if (configManager.isModuleEnabled("afk")) {
@@ -361,7 +239,17 @@ public class ArisCore extends JavaPlugin {
             getServer().getPluginManager().registerEvents(sellGUI, this);
         }
     }
-
+    
+    @Override
+    public void onDisable() {
+        if (homeManager != null) homeManager.saveHomes();
+        if (warpManager != null) warpManager.saveWarps();
+        if (tpaManager != null) tpaManager.shutdown();
+        if (afkManager != null) afkManager.shutdown();
+        if (shardsManager != null) shardsManager.saveData();
+        getLogger().info("ArisCore has been disabled!");
+    }
+    
     public static ArisCore getInstance() { return instance; }
     public ConfigManager getConfigManager() { return configManager; }
     public TeleportManager getTeleportManager() { return teleportManager; }
@@ -407,4 +295,4 @@ public class ArisCore extends JavaPlugin {
     public SellMessageManager getSellMessageManager() { return sellMessageManager; }
     public SellSoundManager getSellSoundManager() { return sellSoundManager; }
     public SellGUI getSellGUI() { return sellGUI; }
-  }
+}

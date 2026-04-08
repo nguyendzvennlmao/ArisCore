@@ -1,6 +1,7 @@
 package me.aris.core.afk.manager;
 
 import me.aris.core.ArisCore;
+import me.aris.core.afk.model.AFKPlayer;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -14,8 +15,7 @@ import java.util.UUID;
 
 public class AFKManager {
     private ArisCore plugin;
-    private Map<UUID, Boolean> afkPlayers;
-    private Map<UUID, Long> lastActiveTime;
+    private Map<UUID, AFKPlayer> afkPlayers;
     private Location afkLocation;
     private File afkFile;
     private YamlConfiguration afkConfig;
@@ -24,7 +24,6 @@ public class AFKManager {
     public AFKManager(ArisCore plugin) {
         this.plugin = plugin;
         this.afkPlayers = new HashMap<>();
-        this.lastActiveTime = new HashMap<>();
         this.afkFile = new File(plugin.getDataFolder(), "Location/afk.yml");
         loadAFKLocation();
         startAutoAFKTask();
@@ -73,7 +72,6 @@ public class AFKManager {
     public void setAFKLocation(Location location) {
         this.afkLocation = location.clone();
         saveAFKLocation();
-        plugin.getAFKSoundManager().playAFKLocationSet(null);
     }
     
     public void deleteAFKLocation() {
@@ -87,7 +85,6 @@ public class AFKManager {
         } catch (IOException e) {
             plugin.getLogger().warning("Failed to reset afk.yml");
         }
-        plugin.getAFKSoundManager().playAFKLocationDelete(null);
     }
     
     public Location getAFKLocation() {
@@ -95,12 +92,15 @@ public class AFKManager {
     }
     
     public boolean isAFK(Player player) {
-        return afkPlayers.getOrDefault(player.getUniqueId(), false);
+        AFKPlayer afkPlayer = afkPlayers.get(player.getUniqueId());
+        return afkPlayer != null && afkPlayer.isAfk();
     }
     
     public void setAFK(Player player, boolean afk) {
-        if (afk) {
-            afkPlayers.put(player.getUniqueId(), true);
+        AFKPlayer afkPlayer = afkPlayers.computeIfAbsent(player.getUniqueId(), AFKPlayer::new);
+        
+        if (afk && !afkPlayer.isAfk()) {
+            afkPlayer.setAfk(true);
             plugin.getAFKMessageManager().sendMessage(player, "afk-on");
             plugin.getAFKSoundManager().playAFKOn(player);
             for (Player online : Bukkit.getOnlinePlayers()) {
@@ -109,10 +109,10 @@ public class AFKManager {
                 }
             }
             if (afkLocation != null) {
-                startTeleportToAFKLocation(player);
+                plugin.getTeleportManager().startTeleport(player, afkLocation, "afk");
             }
-        } else {
-            afkPlayers.remove(player.getUniqueId());
+        } else if (!afk && afkPlayer.isAfk()) {
+            afkPlayer.setAfk(false);
             plugin.getAFKMessageManager().sendMessage(player, "afk-off");
             plugin.getAFKSoundManager().playAFKOff(player);
             for (Player online : Bukkit.getOnlinePlayers()) {
@@ -123,10 +123,6 @@ public class AFKManager {
         }
     }
     
-    private void startTeleportToAFKLocation(Player player) {
-        plugin.getTeleportManager().startTeleport(player, afkLocation, "afk");
-    }
-    
     private void startAutoAFKTask() {
         int autoAFKTime = plugin.getConfigManager().getModuleConfig("afk").getInt("auto-afk-time", 300);
         int checkInterval = plugin.getConfigManager().getModuleConfig("afk").getInt("check-interval", 10);
@@ -135,9 +131,15 @@ public class AFKManager {
             @Override
             public void run() {
                 for (Player player : Bukkit.getOnlinePlayers()) {
-                    if (!isAFK(player)) {
-                        long lastActive = lastActiveTime.getOrDefault(player.getUniqueId(), System.currentTimeMillis());
-                        if (System.currentTimeMillis() - lastActive > autoAFKTime * 1000L) {
+                    AFKPlayer afkPlayer = afkPlayers.get(player.getUniqueId());
+                    if (afkPlayer == null) {
+                        afkPlayer = new AFKPlayer(player.getUniqueId());
+                        afkPlayers.put(player.getUniqueId(), afkPlayer);
+                    }
+                    
+                    if (!afkPlayer.isAfk()) {
+                        long inactiveTime = System.currentTimeMillis() - afkPlayer.getLastActive();
+                        if (inactiveTime > autoAFKTime * 1000L) {
                             setAFK(player, true);
                         }
                     }
@@ -147,8 +149,10 @@ public class AFKManager {
     }
     
     public void updateActivity(Player player) {
-        lastActiveTime.put(player.getUniqueId(), System.currentTimeMillis());
-        if (isAFK(player)) {
+        AFKPlayer afkPlayer = afkPlayers.computeIfAbsent(player.getUniqueId(), AFKPlayer::new);
+        afkPlayer.updateActivity();
+        
+        if (afkPlayer.isAfk()) {
             setAFK(player, false);
         }
     }
@@ -158,4 +162,4 @@ public class AFKManager {
             Bukkit.getScheduler().cancelTask(taskId);
         }
     }
-          }
+            }

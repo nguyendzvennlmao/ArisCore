@@ -1,0 +1,79 @@
+request-gui:
+  name: "&8ᴄᴏɴғɪʀᴍ ʀᴇǫᴜᴇsᴛ"
+  rows: 3
+
+  icons:
+    cancel-icon:
+      slot: 10
+      material: RED_STAINED_GLASS_PANE
+      display-name: "&4ᴄᴀɴᴄᴇʟ"
+      lore:
+        - "&7Click to cancel this request"
+
+    location-icon:
+      slot: 12
+      display-name: "&aʟᴏᴄᴀᴛɪᴏɴ"
+      lore:
+        - "&f%world%"
+
+    player-icon:
+      slot: 13
+      material: PLAYER_HEAD
+      display-name: "&aᴘʟᴀʏᴇʀ"
+      lore:
+        - "&f%player%"
+
+    confirm-icon:
+      slot: 16
+      material: LIME_STAINED_GLASS_PANE
+      display-name: "&aᴄᴏɴғɪʀᴍ"
+      lore:
+        - "&7Click to send a teleport request"
+        - "&7to &f%player%"
+
+    fly-icon:
+      slot: 14
+      material: FEATHER
+      display-name: "&aғʟʏɪɴɢ"
+      lore:
+        - "&f%is_flying%"
+
+accept-gui:
+  name: "&8ᴀᴄᴄᴇᴘᴛ ʀᴇǫᴜᴇsᴛ"
+  rows: 3
+
+  icons:
+    cancel-icon:
+      slot: 10
+      material: RED_STAINED_GLASS_PANE
+      display-name: "&4ᴅᴇɴʏ"
+      lore:
+        - "&7Click to deny this request"
+
+    location-icon:
+      slot: 12
+      display-name: "&aʟᴏᴄᴀᴛɪᴏɴ"
+      lore:
+        - "&f%world%"
+
+    player-icon:
+      slot: 13
+      material: PLAYER_HEAD
+      display-name: "&aᴘʟᴀʏᴇʀ"
+      lore:
+        - "&f%player%"
+
+    confirm-icon:
+      slot: 16
+      material: LIME_STAINED_GLASS_PANE
+      display-name: "&aᴀᴄᴄᴇᴘᴛ"
+      lore:
+        - "&7Click to accept teleport request"
+        - "&7from &f%player%"
+
+    fly-icon:
+      slot: 14
+      material: FEATHER
+      display-name: "&aғʟʏɪɴɢ"
+      lore:
+        - "&f%is_flying%"

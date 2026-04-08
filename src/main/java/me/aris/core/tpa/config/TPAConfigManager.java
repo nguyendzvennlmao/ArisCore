@@ -67,4 +67,4 @@ public class TPAConfigManager {
     public FileConfiguration getSoundConfig() { return soundConfig; }
     public FileConfiguration getTPAGUIConfig() { return tpaGuiConfig; }
     public FileConfiguration getTPAHereGUIConfig() { return tpahereGuiConfig; }
-          }
+            }

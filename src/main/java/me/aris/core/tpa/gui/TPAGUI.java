@@ -6,7 +6,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -15,7 +14,6 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
-import java.io.File;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -28,23 +26,8 @@ public class TPAGUI implements Listener {
     
     public TPAGUI(ArisCore plugin) {
         this.plugin = plugin;
-        loadConfigs();
-    }
-    
-    private void loadConfigs() {
-        File tpaFile = new File(plugin.getDataFolder(), "tpa/gui/tpa.yml");
-        if (tpaFile.exists()) {
-            tpaGuiConfig = YamlConfiguration.loadConfiguration(tpaFile);
-        } else {
-            tpaGuiConfig = new YamlConfiguration();
-        }
-        
-        File tpahereFile = new File(plugin.getDataFolder(), "tpa/gui/tpahere.yml");
-        if (tpahereFile.exists()) {
-            tpahereGuiConfig = YamlConfiguration.loadConfiguration(tpahereFile);
-        } else {
-            tpahereGuiConfig = new YamlConfiguration();
-        }
+        this.tpaGuiConfig = plugin.getTPAConfigManager().getTPAGUIConfig();
+        this.tpahereGuiConfig = plugin.getTPAConfigManager().getTPAHereGUIConfig();
     }
     
     private String translateHexColors(String message) {
@@ -290,4 +273,4 @@ public class TPAGUI implements Listener {
         }
         return "";
     }
-    }
+            }

@@ -14,6 +14,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -116,22 +117,24 @@ public class SellGUI implements Listener {
         for (Map.Entry<Material, Integer> entry : itemsToSell.entrySet()) {
             if (slot >= rows * 9 - 9) break;
             
-            double price = prices.getOrDefault(entry.getKey(), 0.0);
+            Material material = entry.getKey();
+            double price = prices.getOrDefault(material, 0.0);
             int amount = entry.getValue();
             double itemTotal = price * amount;
             
-            ItemStack display = new ItemStack(entry.getKey(), Math.min(amount, 64));
+            ItemStack display = new ItemStack(material, Math.min(amount, 64));
             ItemMeta meta = display.getItemMeta();
             
-            String name = itemNameTemplate.replace("%item%", formatMaterialName(entry.getKey().name()));
+            String name = itemNameTemplate.replace("%item%", formatMaterialName(material.name()));
             meta.setDisplayName(translateColors(name));
             
-            List<String> coloredLore = itemLoreTemplate.stream()
-                .map(line -> line.replace("%amount%", String.valueOf(amount))
-                               .replace("%price%", formatPrice(price))
-                               .replace("%total_price%", formatPrice(itemTotal)))
-                .map(this::translateColors)
-                .toList();
+            List<String> coloredLore = new ArrayList<>();
+            for (String line : itemLoreTemplate) {
+                String coloredLine = line.replace("%amount%", String.valueOf(amount))
+                                       .replace("%price%", formatPrice(price))
+                                       .replace("%total_price%", formatPrice(itemTotal));
+                coloredLore.add(translateColors(coloredLine));
+            }
             meta.setLore(coloredLore);
             display.setItemMeta(meta);
             gui.setItem(slot, display);
@@ -154,11 +157,12 @@ public class SellGUI implements Listener {
         ItemMeta sellMeta = sellButton.getItemMeta();
         sellMeta.setDisplayName(translateColors(sellButtonName));
         
-        List<String> coloredSellLore = sellButtonLore.stream()
-            .map(line -> line.replace("%total_items%", String.valueOf(totalItems))
-                           .replace("%total_price%", formatPrice(totalPrice)))
-            .map(this::translateColors)
-            .toList();
+        List<String> coloredSellLore = new ArrayList<>();
+        for (String line : sellButtonLore) {
+            String coloredLine = line.replace("%total_items%", String.valueOf(totalItems))
+                                   .replace("%total_price%", formatPrice(totalPrice));
+            coloredSellLore.add(translateColors(coloredLine));
+        }
         sellMeta.setLore(coloredSellLore);
         sellButton.setItemMeta(sellMeta);
         gui.setItem(sellButtonSlot, sellButton);
@@ -179,7 +183,11 @@ public class SellGUI implements Listener {
         ItemMeta closeMeta = closeButton.getItemMeta();
         closeMeta.setDisplayName(translateColors(closeButtonName));
         if (closeButtonLore != null && !closeButtonLore.isEmpty()) {
-            closeMeta.setLore(closeButtonLore.stream().map(this::translateColors).toList());
+            List<String> coloredCloseLore = new ArrayList<>();
+            for (String line : closeButtonLore) {
+                coloredCloseLore.add(translateColors(line));
+            }
+            closeMeta.setLore(coloredCloseLore);
         }
         closeButton.setItemMeta(closeMeta);
         gui.setItem(closeButtonSlot, closeButton);
@@ -247,4 +255,4 @@ public class SellGUI implements Listener {
         placeholders.put("total_price", formatPrice(totalPrice));
         plugin.getMessageManager().sendMessage(player, "sold-all", "sell", placeholders);
     }
-          }
+                }

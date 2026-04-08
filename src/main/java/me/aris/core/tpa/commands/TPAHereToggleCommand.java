@@ -38,4 +38,4 @@ public class TPAHereToggleCommand implements CommandExecutor {
         
         return true;
     }
-  }
+}

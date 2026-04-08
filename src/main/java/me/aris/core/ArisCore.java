@@ -1,86 +1,89 @@
 package me.aris.core;
 
-import me.aris.core.tpa.TPAManager;
-import me.aris.core.tpa.TPAMessageManager;
-import me.aris.core.tpa.TPASoundManager;
-import me.aris.core.tpa.TPAGUI;
-import me.aris.core.tpa.TPATeleportManager;
-import me.aris.core.tpa.config.TPAConfigManager;
 import me.aris.core.tpa.commands.*;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
+import me.aris.core.tpa.config.TPAConfigManager;
+import me.aris.core.tpa.gui.TPAGUI;
+import me.aris.core.tpa.manager.TPAManager;
+import me.aris.core.tpa.message.TPAMessageManager;
+import me.aris.core.tpa.sound.TPASoundManager;
+import me.aris.core.tpa.teleport.TPATeleportManager;
 import org.bukkit.plugin.java.JavaPlugin;
-import java.io.File;
 
-public class ArisCore extends JavaPlugin {
+public final class ArisCore extends JavaPlugin {
+
     private static ArisCore instance;
-    private TPAConfigManager tpaConfigManager;
+    
     private TPAManager tpaManager;
-    private TPAMessageManager tpaMessageManager;
-    private TPASoundManager tpaSoundManager;
+    private TPAMessageManager messageManager;
+    private TPASoundManager soundManager;
+    private TPATeleportManager teleportManager;
+    private TPAConfigManager configManager;
     private TPAGUI tpaGUI;
-    private TPATeleportManager tpaTeleportManager;
 
     @Override
     public void onEnable() {
         instance = this;
-        printLogo();
-        createFolders();
         
-        tpaConfigManager = new TPAConfigManager(this);
-        tpaMessageManager = new TPAMessageManager(this);
-        tpaSoundManager = new TPASoundManager(this);
-        tpaTeleportManager = new TPATeleportManager(this);
-        tpaManager = new TPAManager(this);
-        tpaGUI = new TPAGUI(this);
+        saveDefaultConfig();
+        
+        this.configManager = new TPAConfigManager(this);
+        this.messageManager = new TPAMessageManager(this);
+        this.soundManager = new TPASoundManager(this);
+        this.tpaManager = new TPAManager(this);
+        this.teleportManager = new TPATeleportManager(this);
+        this.tpaGUI = new TPAGUI(this);
         
         registerCommands();
-        registerListeners();
         
-        getLogger().info(ChatColor.GREEN + "ArisCore has been enabled!");
+        getLogger().info("§aArisCore TPA System has been enabled!");
+        getLogger().info("§eCreated by nguyendzvenlimao");
     }
-    
-    private void printLogo() {
-        String logo = "\n&8&m----------------------------------------\n&eArisCore &fv1.0\n&aAuthor: VennLMAO\n&cSupport: folia - 1.21.x\n&8&m----------------------------------------";
-        String[] lines = logo.split("\n");
-        for (String line : lines) {
-            Bukkit.getConsoleSender().sendMessage(ChatColor.translateAlternateColorCodes('&', line));
+
+    @Override
+    public void onDisable() {
+        if (tpaManager != null) {
+            tpaManager.clearAllRequests();
         }
-    }
-    
-    private void createFolders() {
-        String[] folders = {"", "tpa", "tpa/gui"};
-        for (String folder : folders) {
-            new File(getDataFolder(), folder).mkdirs();
-        }
+        
+        getLogger().info("§cArisCore TPA System has been disabled!");
     }
     
     private void registerCommands() {
         getCommand("tpa").setExecutor(new TPACommand(this));
         getCommand("tpahere").setExecutor(new TPAHereCommand(this));
         getCommand("tpaccept").setExecutor(new TPAcceptCommand(this));
-        getCommand("tpdeny").setExecutor(new TPDenyCommand(this));
-        getCommand("tpacancel").setExecutor(new TPAcancelCommand(this));
+        getCommand("tpadeny").setExecutor(new TPDenyCommand(this));
+        getCommand("tpacancel").setExecutor(new TPACancelCommand(this));
+        getCommand("tpauto").setExecutor(new TPAAutoCommand(this));
         getCommand("tpatoggle").setExecutor(new TPAToggleCommand(this));
         getCommand("tpaheretoggle").setExecutor(new TPAHereToggleCommand(this));
-        getCommand("tpauto").setExecutor(new TPAutoCommand(this));
     }
     
-    private void registerListeners() {
-        getServer().getPluginManager().registerEvents(tpaGUI, this);
+    public static ArisCore getInstance() {
+        return instance;
     }
     
-    @Override
-    public void onDisable() {
-        if (tpaManager != null) tpaManager.shutdown();
-        getLogger().info("ArisCore has been disabled!");
+    public TPAManager getTPAManager() {
+        return tpaManager;
     }
     
-    public static ArisCore getInstance() { return instance; }
-    public TPAConfigManager getTPAConfigManager() { return tpaConfigManager; }
-    public TPAManager getTPAManager() { return tpaManager; }
-    public TPAMessageManager getTPAMessageManager() { return tpaMessageManager; }
-    public TPASoundManager getTPASoundManager() { return tpaSoundManager; }
-    public TPAGUI getTPAGUI() { return tpaGUI; }
-    public TPATeleportManager getTPATeleportManager() { return tpaTeleportManager; }
+    public TPAMessageManager getMessageManager() {
+        return messageManager;
     }
+    
+    public TPASoundManager getSoundManager() {
+        return soundManager;
+    }
+    
+    public TPATeleportManager getTeleportManager() {
+        return teleportManager;
+    }
+    
+    public TPAConfigManager getConfigManager() {
+        return configManager;
+    }
+    
+    public TPAGUI getTPAGUI() {
+        return tpaGUI;
+    }
+                }

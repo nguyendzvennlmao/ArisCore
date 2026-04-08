@@ -2,202 +2,165 @@ package me.aris.core.tpa.manager;
 
 import me.aris.core.ArisCore;
 import me.aris.core.tpa.model.TeleportRequest;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class TPAManager {
-    private ArisCore plugin;
-    private Map<String, TeleportRequest> pendingRequests;
-    private Map<String, Long> cooldowns;
-    private Map<UUID, Boolean> tpaToggle;
-    private Map<UUID, Boolean> tpaHereToggle;
-    private Map<UUID, Boolean> tpAuto;
-    private Map<UUID, Boolean> guiEnabled;
-    private Map<UUID, Boolean> guiHereEnabled;
-    private Map<UUID, Integer> persistentTasks;
+    
+    private final ArisCore plugin;
+    private final Map<UUID, TeleportRequest> pendingRequests;
+    private final Map<UUID, Boolean> tpaToggle;
+    private final Map<UUID, Boolean> tpaHereToggle;
+    private final Map<UUID, Boolean> tpaAuto;
     
     public TPAManager(ArisCore plugin) {
         this.plugin = plugin;
         this.pendingRequests = new ConcurrentHashMap<>();
-        this.cooldowns = new ConcurrentHashMap<>();
-        this.tpaToggle = new ConcurrentHashMap<>();
-        this.tpaHereToggle = new ConcurrentHashMap<>();
-        this.tpAuto = new ConcurrentHashMap<>();
-        this.guiEnabled = new ConcurrentHashMap<>();
-        this.guiHereEnabled = new ConcurrentHashMap<>();
-        this.persistentTasks = new ConcurrentHashMap<>();
+        this.tpaToggle = new HashMap<>();
+        this.tpaHereToggle = new HashMap<>();
+        this.tpaAuto = new HashMap<>();
     }
     
-    public boolean canSendRequest(Player sender, Player target) {
-        if (sender.getUniqueId().equals(target.getUniqueId())) {
-            return false;
+    public void sendRequest(Player sender, Player target, boolean isHere) {
+        UUID targetUUID = target.getUniqueId();
+        
+        if (isToggled(targetUUID, isHere)) {
+            plugin.getTPAMessageManager().sendMessage(sender, "target_toggled");
+            return;
         }
         
-        String key = sender.getUniqueId().toString() + ":" + target.getUniqueId().toString();
+        if (hasPendingRequest(targetUUID)) {
+            plugin.getTPAMessageManager().sendMessage(sender, "target_has_pending");
+            return;
+        }
         
-        if (cooldowns.containsKey(key)) {
-            long remaining = (cooldowns.get(key) + plugin.getTPAConfigManager().getCooldown() * 1000L) - System.currentTimeMillis();
-            if (remaining > 0) {
-                plugin.getTPAMessageManager().sendMessage(sender, "request-cooldown");
-                return false;
+        TeleportRequest request = new TeleportRequest(sender.getUniqueId(), targetUUID, isHere);
+        pendingRequests.put(targetUUID, request);
+        
+        plugin.getTPAMessageManager().sendRequestMessage(sender, target, isHere);
+        
+        int timeout = plugin.getTPAConfigManager().getRequestTimeout();
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            if (pendingRequests.containsKey(targetUUID) && pendingRequests.get(targetUUID).equals(request)) {
+                pendingRequests.remove(targetUUID);
+                plugin.getTPAMessageManager().sendMessage(sender, "request_expired");
+                plugin.getTPAMessageManager().sendMessage(target, "request_expired_target");
             }
-        }
+        }, timeout * 20L);
+    }
+    
+    public boolean acceptRequest(Player target) {
+        UUID targetUUID = target.getUniqueId();
         
-        if (!isTPAEnabled(target)) {
-            plugin.getTPAMessageManager().sendMessage(sender, "block-tpa-request");
+        if (!hasPendingRequest(targetUUID)) {
+            plugin.getTPAMessageManager().sendMessage(target, "no_pending_request");
             return false;
         }
         
-        if (hasPendingRequestFrom(sender, target)) {
-            plugin.getTPAMessageManager().sendMessage(sender, "already-sent-request", "player", target.getName());
+        TeleportRequest request = pendingRequests.remove(targetUUID);
+        Player sender = Bukkit.getPlayer(request.getSenderUUID());
+        
+        if (sender == null || !sender.isOnline()) {
+            plugin.getTPAMessageManager().sendMessage(target, "sender_offline");
             return false;
         }
+        
+        if (request.isHere()) {
+            plugin.getTPATeleportManager().teleportHere(sender, target);
+        } else {
+            plugin.getTPATeleportManager().teleportTo(sender, target);
+        }
+        
+        plugin.getTPAMessageManager().sendAcceptMessage(sender, target);
+        plugin.getTPASoundManager().playAcceptSound(sender);
+        plugin.getTPASoundManager().playAcceptSound(target);
         
         return true;
     }
     
-    public void addRequest(TeleportRequest request) {
-        String key = request.getSender().getUniqueId().toString() + ":" + request.getTarget().getUniqueId().toString();
-        pendingRequests.put(key, request);
+    public boolean denyRequest(Player target) {
+        UUID targetUUID = target.getUniqueId();
         
-        String cooldownKey = request.getSender().getUniqueId().toString() + ":" + request.getTarget().getUniqueId().toString();
-        cooldowns.put(cooldownKey, System.currentTimeMillis());
+        if (!hasPendingRequest(targetUUID)) {
+            plugin.getTPAMessageManager().sendMessage(target, "no_pending_request");
+            return false;
+        }
         
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (pendingRequests.containsKey(key)) {
-                    pendingRequests.remove(key);
-                    Map<String, String> placeholders = new HashMap<>();
-                    placeholders.put("player", request.getTarget().getName());
-                    plugin.getTPAMessageManager().sendMessage(request.getSender(), "request-expired", placeholders);
+        TeleportRequest request = pendingRequests.remove(targetUUID);
+        Player sender = Bukkit.getPlayer(request.getSenderUUID());
+        
+        if (sender != null && sender.isOnline()) {
+            plugin.getTPAMessageManager().sendDenyMessage(sender, target);
+            plugin.getTPASoundManager().playDenySound(sender);
+        }
+        
+        plugin.getTPAMessageManager().sendMessage(target, "denied_request");
+        plugin.getTPASoundManager().playDenySound(target);
+        
+        return true;
+    }
+    
+    public boolean cancelRequest(Player sender) {
+        for (Map.Entry<UUID, TeleportRequest> entry : pendingRequests.entrySet()) {
+            TeleportRequest request = entry.getValue();
+            if (request.getSenderUUID().equals(sender.getUniqueId())) {
+                pendingRequests.remove(entry.getKey());
+                Player target = Bukkit.getPlayer(entry.getKey());
+                
+                plugin.getTPAMessageManager().sendMessage(sender, "cancelled_request");
+                if (target != null && target.isOnline()) {
+                    plugin.getTPAMessageManager().sendMessage(target, "request_cancelled");
+                    plugin.getTPASoundManager().playCancelSound(target);
                 }
-            }
-        }.runTaskLater(plugin, plugin.getTPAConfigManager().getExpirationTime() * 20L);
-    }
-    
-    public TeleportRequest getRequest(Player target, Player sender) {
-        String key = sender.getUniqueId().toString() + ":" + target.getUniqueId().toString();
-        return pendingRequests.get(key);
-    }
-    
-    public List<TeleportRequest> getRequestsForTarget(Player target) {
-        List<TeleportRequest> requests = new ArrayList<>();
-        for (TeleportRequest request : pendingRequests.values()) {
-            if (request.getTarget().getUniqueId().equals(target.getUniqueId())) {
-                requests.add(request);
+                return true;
             }
         }
-        return requests;
-    }
-    
-    public void removeRequest(TeleportRequest request) {
-        String key = request.getSender().getUniqueId().toString() + ":" + request.getTarget().getUniqueId().toString();
-        pendingRequests.remove(key);
-    }
-    
-    public void removeAllRequestsFrom(Player sender) {
-        pendingRequests.entrySet().removeIf(entry -> entry.getValue().getSender().getUniqueId().equals(sender.getUniqueId()));
-    }
-    
-    public boolean hasPendingRequestFrom(Player sender, Player target) {
-        String key = sender.getUniqueId().toString() + ":" + target.getUniqueId().toString();
-        return pendingRequests.containsKey(key);
-    }
-    
-    public boolean isTPAEnabled(Player player) {
-        return tpaToggle.getOrDefault(player.getUniqueId(), true);
-    }
-    
-    public void setTPAEnabled(Player player, boolean enabled) {
-        tpaToggle.put(player.getUniqueId(), enabled);
-        if (enabled) {
-            plugin.getTPASoundManager().playToggleOn(player);
-        } else {
-            plugin.getTPASoundManager().playToggleOff(player);
-        }
-    }
-    
-    public boolean isTPAHereEnabled(Player player) {
-        return tpaHereToggle.getOrDefault(player.getUniqueId(), true);
-    }
-    
-    public void setTPAHereEnabled(Player player, boolean enabled) {
-        tpaHereToggle.put(player.getUniqueId(), enabled);
-        if (enabled) {
-            plugin.getTPASoundManager().playToggleOn(player);
-        } else {
-            plugin.getTPASoundManager().playToggleOff(player);
-        }
-    }
-    
-    public boolean isTPAutoEnabled(Player player) {
-        return tpAuto.getOrDefault(player.getUniqueId(), false);
-    }
-    
-    public void setTPAutoEnabled(Player player, boolean enabled) {
-        tpAuto.put(player.getUniqueId(), enabled);
         
-        if (enabled) {
-            plugin.getTPAMessageManager().sendMessage(player, "tpauto-on");
-            startPersistentActionBar(player);
-            plugin.getTPASoundManager().playTPAutoOn(player);
+        plugin.getTPAMessageManager().sendMessage(sender, "no_outgoing_request");
+        return false;
+    }
+    
+    public boolean hasPendingRequest(UUID uuid) {
+        return pendingRequests.containsKey(uuid);
+    }
+    
+    public void toggleTPA(UUID uuid) {
+        tpaToggle.put(uuid, !isTPAToggled(uuid));
+    }
+    
+    public void toggleTPAHere(UUID uuid) {
+        tpaHereToggle.put(uuid, !isTPAHereToggled(uuid));
+    }
+    
+    public void toggleTPAAuto(UUID uuid) {
+        tpaAuto.put(uuid, !isTPAAutoEnabled(uuid));
+    }
+    
+    public boolean isTPAToggled(UUID uuid) {
+        return tpaToggle.getOrDefault(uuid, false);
+    }
+    
+    public boolean isTPAHereToggled(UUID uuid) {
+        return tpaHereToggle.getOrDefault(uuid, false);
+    }
+    
+    public boolean isTPAAutoEnabled(UUID uuid) {
+        return tpaAuto.getOrDefault(uuid, false);
+    }
+    
+    private boolean isToggled(UUID uuid, boolean isHere) {
+        if (isHere) {
+            return isTPAHereToggled(uuid);
         } else {
-            stopPersistentActionBar(player);
-            plugin.getTPAMessageManager().sendMessage(player, "tpauto-off");
-            plugin.getTPASoundManager().playTPAutoOff(player);
+            return isTPAToggled(uuid);
         }
     }
     
-    private void startPersistentActionBar(Player player) {
-        stopPersistentActionBar(player);
-        
-        int taskId = new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (!player.isOnline() || !isTPAutoEnabled(player)) {
-                    cancel();
-                    persistentTasks.remove(player.getUniqueId());
-                    return;
-                }
-                plugin.getTPAMessageManager().sendMessage(player, "tpauto-on-persistent");
+    public void clearAllRequests() {
+        pendingRequests.clear();
+    }
             }
-        }.runTaskTimer(plugin, 0L, 20L).getTaskId();
-        
-        persistentTasks.put(player.getUniqueId(), taskId);
-    }
-    
-    private void stopPersistentActionBar(Player player) {
-        Integer taskId = persistentTasks.remove(player.getUniqueId());
-        if (taskId != null) {
-            org.bukkit.Bukkit.getScheduler().cancelTask(taskId);
-        }
-    }
-    
-    public boolean isGUIEnabled(Player player) {
-        return guiEnabled.getOrDefault(player.getUniqueId(), true);
-    }
-    
-    public void setGUIEnabled(Player player, boolean enabled) {
-        guiEnabled.put(player.getUniqueId(), enabled);
-    }
-    
-    public boolean isGUIHereEnabled(Player player) {
-        return guiHereEnabled.getOrDefault(player.getUniqueId(), true);
-    }
-    
-    public void setGUIHereEnabled(Player player, boolean enabled) {
-        guiHereEnabled.put(player.getUniqueId(), enabled);
-    }
-    
-    public void shutdown() {
-        for (Integer taskId : persistentTasks.values()) {
-            if (taskId != null) {
-                org.bukkit.Bukkit.getScheduler().cancelTask(taskId);
-            }
-        }
-        persistentTasks.clear();
-    }
-          }

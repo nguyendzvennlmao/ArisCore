@@ -1,0 +1,4 @@
+sounds:
+  purchase: ENTITY_PLAYER_LEVELUP
+  error: ENTITY_VILLAGER_NO
+  click: UI_BUTTON_CLICK
